@@ -2,7 +2,10 @@ import os
 
 def get_files_info(working_directory, directory=None):
     try:
-        full_path = os.path.abspath(os.path.join(working_directory, directory))
+        if directory:
+            full_path = os.path.abspath(os.path.join(working_directory, directory))
+        else:
+            full_path = os.path.abspath(working_directory)
         directory_path = os.path.abspath(working_directory)
 
         # Eedge cases handling
