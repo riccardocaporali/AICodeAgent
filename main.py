@@ -46,6 +46,7 @@ All paths you provide should be relative to the working directory. You do not ne
 
 Prioritize changes within the `calculator/pkg/` directory if the issue or feature relates to the calculator's core logic or rendering. Only modify `calculator/main.py` or `calculator/tests.py` if the specific task directly involves changes to the calculator's entry point or its own test suite, respectively.
 """
+
 config=types.GenerateContentConfig(
     tools=[available_functions], system_instruction=system_prompt
 )
@@ -109,6 +110,14 @@ while Cycle_number <= 15 :
             elif part.text: 
                 pass
         
+        # Print specifics
+        prompt_token_count = response.usage_metadata.prompt_token_count
+        candidates_token_count = response.usage_metadata.candidates_token_count
+        if args[-1] == "--verbose":
+            print(f"User prompt: {user_prompt}")
+            print(f"Prompt tokens: {prompt_token_count}")
+            print(f"Response tokens: {candidates_token_count}")
+            
         # If the llm respond with only text, stop the cycle and print reponse
         if only_text_reponse == True:
             i = 100000 
@@ -123,14 +132,6 @@ while Cycle_number <= 15 :
                     parts=function_response_list # <--- Change this from [function_response_list] to function_response_list
                 )
             )
-
-        # Print specifics
-        prompt_token_count = response.usage_metadata.prompt_token_count
-        candidates_token_count = response.usage_metadata.candidates_token_count
-        if args[-1] == "--verbose":
-            print(f"User prompt: {user_prompt}")
-            print(f"Prompt tokens: {prompt_token_count}")
-            print(f"Response tokens: {candidates_token_count}")
 
     except Exception as e:
         # Error if the LLM is temporarily unavailable
