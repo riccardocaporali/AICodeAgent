@@ -8,10 +8,12 @@ from dotenv import load_dotenv
 from google.genai import types
 from google import genai
 
+
 # API and client definition
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key)
+
 
 # Extract user prompt and specifics
 parser = argparse.ArgumentParser(description="LLM code analyzer and debugger")
@@ -35,13 +37,13 @@ if not args.prompt:
     sys.exit(1)
 
 
-
 # Define LLM's input arguments
 model = "gemini-2.0-flash-001"
 user_prompt = args.prompt
 messages = [
     types.Content(role="user", parts=[types.Part(text=user_prompt)]),
 ]
+
 available_functions = types.Tool(
     function_declarations=[
         schemas.schema_get_files_info,
@@ -50,6 +52,7 @@ available_functions = types.Tool(
         schemas.schema_write_file,
     ]
 )
+
 system_prompt = """
 You are a helpful AI coding agent.
 
@@ -71,12 +74,15 @@ config=types.GenerateContentConfig(
     tools=[available_functions], system_instruction=system_prompt
 )
 
-Cycle_number = 0
-while Cycle_number <= 15 :
-    Cycle_number += 1
+# Iterative loop
+cycle_number = 0
+
+while cycle_number <= 15 :
+    cycle_number += 1
+
     try:
         # Generate LLM's response
-        print(f"---------------Iteration number:{Cycle_number}----------------")
+        print(f"---------------Iteration number:{cycle_number}----------------")
         response = client.models.generate_content(
             model = model,
             contents =  messages,
@@ -89,7 +95,7 @@ while Cycle_number <= 15 :
         # Call selected function and continue the cycle
         only_text_reponse = True
 
-        # Empty dictionary to save the functions response
+        # List to store function responses
         function_response_list = []
 
         # Loop over each llm response parts (text + function or multifunction)
@@ -107,14 +113,13 @@ while Cycle_number <= 15 :
 
                 # Extract result for printing
                 function_response = function_call_result.parts[0].function_response.response
+
                 if function_response is None:
                     raise Exception("No output from inputted function")
+                
                 if args.verbose:
                     print(f"-> {function_response}")
-             
-                # Save the function response
-
-
+            
                 # Add the function response to the list
                 function_response_list.append(
                     types.Part.from_function_response( 
@@ -123,16 +128,18 @@ while Cycle_number <= 15 :
                     )
                 )
 
-                # Change the variable to make the while cycle go on
+                # Found a function call → continue the iteration loop
                 only_text_reponse = False
 
-            # Already added full response (including text), so skip
+            # Skip plain text parts (already handled or not actionable)
             elif part.text: 
                 pass
         
+
         # Print specifics
         prompt_token_count = response.usage_metadata.prompt_token_count
         candidates_token_count = response.usage_metadata.candidates_token_count
+
         if args.verbose:
             print(f"User prompt: {user_prompt}")
             print(f"Prompt tokens: {prompt_token_count}")
@@ -140,7 +147,6 @@ while Cycle_number <= 15 :
             
         # If the llm respond with only text, stop the cycle and print reponse
         if only_text_reponse == True:
-            i = 100000 
             print(response.text)
             break
 
@@ -152,6 +158,7 @@ while Cycle_number <= 15 :
                     parts=function_response_list # <--- Change this from [function_response_list] to function_response_list
                 )
             )
+
 
     except Exception as e:
         # Error if the LLM is temporarily unavailable
@@ -179,5 +186,6 @@ while Cycle_number <= 15 :
             ]
         )
         messages.append(error_message)
-        if "--verbose" in args:
+
+        if args.verbose:
             print("EXCEPTION while block:", e)
