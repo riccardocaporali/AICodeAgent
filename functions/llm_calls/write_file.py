@@ -11,6 +11,12 @@ def write_file(working_directory, file_path, content, dry_run=True, log_changes=
         if not full_path.startswith(os.path.abspath(directory_path)):
             return f'Error: Cannot write to "{file_path}" as it is outside the permitted working directory'
         
+        if os.path.exists(full_path):
+            pass
+
+        else:
+            pass
+
         # Write/create content on a file
         with open(full_path, "w") as f:
             f.write(content)
