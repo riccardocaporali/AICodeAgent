@@ -1,7 +1,7 @@
-from functions.get_file_content import get_file_content
-from functions.get_files_info import get_files_info
-from functions.run_python import run_python_file
-from functions.write_file import write_file
+from functions.llm_calls.get_file_content import get_file_content
+from functions.llm_calls.get_files_info import get_files_info
+from functions.llm_calls.run_python import run_python_file
+from functions.llm_calls.write_file import write_file
 from google.genai import types
 
 def call_function(function_call_part, verbose=False):
