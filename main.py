@@ -1,24 +1,44 @@
 import os
-from dotenv import load_dotenv
-from google.genai import types
-from google import genai
+import argparse
 import sys 
 import time
 import functions.functions_schemas as schemas
 from functions.call_function import call_function
+from dotenv import load_dotenv
+from google.genai import types
+from google import genai
 
 # API and client definition
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key)
 
+# Extract user prompt and specifics
+parser = argparse.ArgumentParser(description="LLM code analyzer and debugger")
+
+parser.add_argument(
+    "prompt",
+    nargs="?",
+    help="Prompt da inviare al modello"
+)
+
+parser.add_argument(
+    "--verbose",
+    action="store_true",
+    help="Stampa dettagli extra"
+)
+
+args = parser.parse_args()
+
+if not args.prompt:
+    print("No prompt provided")
+    sys.exit(1)
+
+
+
 # Define LLM's input arguments
-args = sys.argv[1:]
-if not args or args[0] == "--verbose" and len(args) == 1:
-     print("No prompt provided")
-     sys.exit(1)
 model = "gemini-2.0-flash-001"
-user_prompt = sys.argv[1]
+user_prompt = args.prompt
 messages = [
     types.Content(role="user", parts=[types.Part(text=user_prompt)]),
 ]
@@ -89,7 +109,7 @@ while Cycle_number <= 15 :
                 function_response = function_call_result.parts[0].function_response.response
                 if function_response is None:
                     raise Exception("No output from inputted function")
-                if "--verbose" in args:
+                if args.verbose:
                     print(f"-> {function_response}")
              
                 # Save the function response
@@ -113,7 +133,7 @@ while Cycle_number <= 15 :
         # Print specifics
         prompt_token_count = response.usage_metadata.prompt_token_count
         candidates_token_count = response.usage_metadata.candidates_token_count
-        if args[-1] == "--verbose":
+        if args.verbose:
             print(f"User prompt: {user_prompt}")
             print(f"Prompt tokens: {prompt_token_count}")
             print(f"Response tokens: {candidates_token_count}")
