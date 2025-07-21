@@ -15,7 +15,11 @@ def save_file(destination_directory, file_name=None, source_path=None, content=N
             file_name = os.path.basename(source_path)
         else:
             raise ValueError("file_name must be specified if source_path is None")
-        
+    
+    # Check if destination directory is set
+    if destination_directory is None:
+        raise ValueError("destination_directory must be provided")
+    
     # Generate the target path for the saving, if the directory does not exist it is created
     destination_path = os.path.join(destination_directory, file_name)
     os.makedirs(os.path.dirname(destination_path), exist_ok=True)
