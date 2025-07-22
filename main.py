@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 from google.genai import types
 from google import genai
 
-
 # API and client definition
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -135,7 +134,6 @@ while cycle_number <= 15 :
             elif part.text: 
                 pass
         
-
         # Print specifics
         prompt_token_count = response.usage_metadata.prompt_token_count
         candidates_token_count = response.usage_metadata.candidates_token_count
