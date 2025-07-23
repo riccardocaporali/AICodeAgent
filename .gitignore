@@ -12,6 +12,9 @@ README.md
 uv.lock
 __test_env__
 __ai_outputs__
+TO_DO.txt
+project_snapshot.txt
+project_tree.txt
 
 # Virtual environments
 .venv
