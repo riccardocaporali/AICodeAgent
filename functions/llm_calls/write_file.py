@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from functions.internal.save_file import save_file
 
-def write_file(working_directory, file_path, content, dry_run=True, log_changes=True, run_id=None):
+def write_file(working_directory, file_path, content, run_id, dry_run=True, log_changes=True):
     try:
         # Define the selecte file and directory full path
         full_path = os.path.abspath(os.path.join(working_directory, file_path))
@@ -20,7 +20,7 @@ def write_file(working_directory, file_path, content, dry_run=True, log_changes=
         
         if os.path.exists(full_path):
             if dry_run:
-                save_file(source_path=full_path, content=content, log_changes=log_changes, save_backup=False, run_id=run_id)
+                save_file(source_path=full_path, content=content, log_changes=log_changes, backup=False, run_id=run_id)
                 return ("dry run is set to true, no changes applied to the file, "
                         "see proposed changes in __ai_outputs__/diffs")
             

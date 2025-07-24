@@ -10,8 +10,8 @@ wheels/
 README.md
 .python-version
 uv.lock
-__test_env__
 __ai_outputs__
+__test_env__
 TO_DO.txt
 project_snapshot.txt
 project_tree.txt

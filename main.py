@@ -2,17 +2,21 @@ import os
 import argparse
 import sys 
 import time
-import functions.functions_schemas as schemas
-from functions.call_function import call_function
 from dotenv import load_dotenv
 from google.genai import types
 from google import genai
+from functions import functions_schemas as schemas
+from functions.functions_schemas import function_dict
+from functions.call_function import call_function
+from functions.internal.init_run_session import init_run_session
 
 # API and client definition
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key)
 
+# Generate run number
+run_id = init_run_session()
 
 # Extract user prompt and specifics
 parser = argparse.ArgumentParser(description="LLM code analyzer and debugger")
@@ -107,15 +111,22 @@ while cycle_number <= 15 :
                     args=part.function_call.args
                 )
 
+                # Insert run id number when calling write file
+                if function_call_part.name == "write_file":
+                    function_call_part.args["run_id"] = run_id
+                ################
+                # TO BE USED FOR TESTING, COMMENT LATER
+                if function_call_part.name == "write_file":
+                    function_call_part.args["dry_run"] = True
+                    function_call_part.args["log_changes"] = True
+                ################
                 # Call the selected function 
-                function_call_result = call_function(function_call_part)
+                function_call_result = call_function(function_call_part, function_dict, verbose=args.verbose)
 
                 # Extract result for printing
                 function_response = function_call_result.parts[0].function_response.response
-
                 if function_response is None:
                     raise Exception("No output from inputted function")
-                
                 if args.verbose:
                     print(f"-> {function_response}")
             
@@ -137,14 +148,13 @@ while cycle_number <= 15 :
         # Print specifics
         prompt_token_count = response.usage_metadata.prompt_token_count
         candidates_token_count = response.usage_metadata.candidates_token_count
-
         if args.verbose:
             print(f"User prompt: {user_prompt}")
             print(f"Prompt tokens: {prompt_token_count}")
             print(f"Response tokens: {candidates_token_count}")
             
         # If the llm respond with only text, stop the cycle and print reponse
-        if only_text_reponse == True:
+        if only_text_reponse:
             print(response.text)
             break
 

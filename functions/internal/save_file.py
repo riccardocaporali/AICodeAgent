@@ -6,8 +6,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from functions.internal.get_secure_path import get_secure_path
 from functions.internal.get_versioned_path import get_versioned_path
 from functions.internal.save_summary_entry import save_summary_entry
+from functions.internal.save_backup import save_backup
 
-def save_file(file_name=None, source_path=None, content=None, log_changes=True, save_backup=True, run_id=None):
+
+def save_file(file_name=None, source_path=None, content=None, log_changes=True, backup=True, run_id=None):
     """
     Saves a file to a specified directory.
 
@@ -39,15 +41,13 @@ def save_file(file_name=None, source_path=None, content=None, log_changes=True, 
         backup_dir = os.path.join(base_dir, "backups")
         diff_dir = os.path.join(base_dir, "diffs")
         log_dir = os.path.join(base_dir, "logs")
+
     # BACKUPS AND DIFFS
     # Create special cases for saving an existing file or save a new file with a specified content
     if source_path is not None and content is not None:
         # 1. Backup
-        if save_backup:
-            backup_path = get_secure_path(backup_dir, file_name)
-            backup_path = get_versioned_path(backup_path)
-
-            shutil.copy2(original_path, backup_path)
+        if backup:
+            save_backup(original_path, file_name, backup_dir)
 
         # 2. Compute difference row by row
         with open(original_path, "r", encoding="utf-8") as f:
@@ -93,13 +93,13 @@ def save_file(file_name=None, source_path=None, content=None, log_changes=True, 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         if source_path is not None and content is not None:
-            if save_backup:
+            if backup:
                 log_line = f"[{timestamp}] MODIFIED {file_name} (backup: yes, diff: yes)\n"
             else:
                 log_line = f"[{timestamp}] DRY-RUN MODIFY {file_name} (no file written, diff only)\n"
 
         elif content is not None:
-            if save_backup:
+            if backup:
                 log_line = f"[{timestamp}] CREATED {file_name}\n"
             else:
                 log_line = f"[{timestamp}] DRY-RUN CREATE {file_name} (not written, diff only)\n"

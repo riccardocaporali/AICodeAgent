@@ -140,7 +140,7 @@ def test_8_disable_backup():
 
     modified_content = "new content\n"
 
-    save_file(file_name=name, source_path=original_path, content=modified_content, run_id=run_id, save_backup=False)
+    save_file(file_name=name, source_path=original_path, content=modified_content, run_id=run_id, backup=False)
 
     backup_path = os.path.abspath(f"__ai_outputs__/backups/{run_id}/{name}")
     assert not os.path.exists(backup_path)
