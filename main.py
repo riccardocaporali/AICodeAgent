@@ -66,7 +66,8 @@ When a user asks a question or makes a request, make a function call plan. You c
 - Execute Python files with optional arguments
 - Write or overwrite files
 
-All paths you provide should be relative to the working directory. You do not need to specify the working directory in your function calls as it is automatically injected for security reasons.
+All paths you provide should be relative to the main 'code_to_fix' directory. You do **not** need to include 'code_to_fix/' in your inputs. 
+The system will automatically inject the full working directory path (starting from 'code_to_fix/') when executing your calls, based on the 'working_directory' or 'directory' field you specify.
 
 **Crucially, when fixing a bug or implementing a feature, first identify the specific file(s) causing the issue or where the feature needs to be added. Limit your modifications to only those files that *need* to be changed. Avoid making unnecessary alterations to the project's top-level structure, especially files like the root `main.py` or `tests.py`, unless explicitly instructed or the bug *directly* originates there. Focus your changes on files within the `calculator/` directory when working on the calculator project.**
 
@@ -110,7 +111,15 @@ while cycle_number <= 15 :
                     name=part.function_call.name,
                     args=part.function_call.args
                 )
-
+                
+                # Working directory is always rooted in './codes_to_fix' for safety.
+                # The LLM only provides relative paths like 'calculator/' or 'project_x/'.
+                original_dir = function_call_part.args.get("working_directory", "")
+                base_dir = "code_to_fix"
+                if original_dir:
+                    function_call_part.args["working_directory"] = os.path.join(base_dir, original_dir)
+                else:
+                    function_call_part.args["working_directory"] = base_dir
                 # Insert run id number when calling write file
                 if function_call_part.name == "write_file":
                     function_call_part.args["run_id"] = run_id

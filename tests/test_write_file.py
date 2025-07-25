@@ -32,32 +32,32 @@ with open(os.path.join(working_dir, existing_file), "w") as f:
     f.write(content_v1)
 
 # 1. Dry run on existing file
-print("Test 1: dry run on existing file")
+print("\u25B6\uFE0F Test 1: dry run on existing file")
 result_1 = write_file(working_dir, existing_file, content_v2, dry_run=True, run_id=run_id )
 print(result_1)
 
 # 2. Actual write on existing file
-print("\nTest 2: actual write on existing file")
+print("\n\u25B6\uFE0F Test 2: actual write on existing file")
 result_2 = write_file(working_dir, existing_file, content_v2, dry_run=False, run_id=run_id )
 print(result_2)
 
 # 3. Write to a new file
-print("\nTest 3: write to new file")
+print("\n\u25B6\uFE0F Test 3: write to new file")
 result_3 = write_file(working_dir, new_file, content_v1, dry_run=False, run_id=run_id )
 print(result_3)
 
 # 4. Attempt to write outside working directory
-print("\nTest 4: path escape attempt")
+print("\n\u25B6\uFE0F Test 4: path escape attempt")
 result_4 = write_file(working_dir, outside_path, content_v1, run_id=run_id )
 print(result_4)
 
 # 5. Attempt to write into a non exististing directory
-print("\nTest 5: Non existing directory")
+print("\n\u25B6\uFE0F Test 5: Non existing directory")
 result_5 = write_file("Fake_directory", new_file, content_v1, run_id=run_id )
 print(result_5)
 
 # 6. Disable logging
-print("\nTest 6: write with log_changes=False")
+print("\n\u25B6\uFE0F Test 6: write with log_changes=False")
 result_6 = write_file(working_dir, new_file, "# silent\n", log_changes=False, run_id=run_id )
 print(result_6)
 

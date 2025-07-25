@@ -1,16 +1,21 @@
-import os
+import os, sys
 import subprocess
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from functions.internal.get_secure_path import get_secure_path
 
 def run_python_file(working_directory, file_path):
-    try:
-        full_path = os.path.abspath(os.path.join(working_directory, file_path))
-        directory_path = os.path.abspath(working_directory)
+    """
+    Securely runs a Python file within the project sandbox.
 
-        # Eedge cases handling
-        if not full_path.startswith(os.path.abspath(directory_path)):
-            return f'Error: Cannot execute "{file_path}" as it is outside the permitted working directory'
+    - Verifies the file path using `get_secure_path` and ensures it's a `.py` file.
+    - Executes the script in a subprocess with a timeout and captures output/errors.
+    - Returns stdout, stderr, and exit code.
+    """
+    try:
+        # Create the path, check if it is secure and inside an existing directory
+        full_path = get_secure_path(working_directory, file_path)
         if not os.path.isfile(full_path):
-            return f'Error: File "{file_path}" not found.'
+            return f'Error: File not found or is not a regular file: "{file_path}"'
         if not full_path.endswith(".py"):
             return f'Error: "{file_path}" is not a Python file.'
     

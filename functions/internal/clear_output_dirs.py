@@ -7,7 +7,7 @@ def clear_output_dirs():
     cleared = 0
 
     # Iterate over each directory
-    for subdir in ["diffs", "backups", "logs"]:
+    for subdir in ["diffs", "backups", "logs", "summary"]:
         path = os.path.join(base_dir, subdir)
 
         if not os.path.exists(path):

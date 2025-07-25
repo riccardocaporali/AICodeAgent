@@ -10,7 +10,6 @@ def call_function(function_call_part, function_dict, verbose=False):
     else:
         print(f" - Calling function: {function_call_part.name}")
 
-    function_call_part.args["working_directory"] = "./calculator"
     function_name = function_call_part.name
     if not function_name in function_dict:
         return types.Content(
