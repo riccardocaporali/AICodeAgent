@@ -33,6 +33,12 @@ parser.add_argument(
     help="Stampa dettagli extra"
 )
 
+parser.add_argument(
+    "--I_O",
+    action="store_true",
+    help="Stampa messages (LLM input) e function response args (LLM output)"
+)
+
 args = parser.parse_args()
 
 if not args.prompt:
@@ -52,26 +58,73 @@ available_functions = types.Tool(
         schemas.schema_get_files_info,
         schemas.schema_get_file_content,
         schemas.schema_run_python_file,
-        schemas.schema_write_file,
+        schemas.schema_write_file_preview,
+        schemas.schema_write_file_confirmed
     ]
 )
 
 system_prompt = """
 You are a helpful AI coding agent.
 
-When a user asks a question or makes a request, make a function call plan. You can perform the following operations:
+### === Available operations ===
+You can perform the following operations by generating appropriate function calls:
+- List files and directories             # via get_files_info
+- Read file contents                     # via get_file_content
+- Execute Python files with arguments    # via run_python_file
+- Propose changes or create files safely # via write_file_preview (non-destructive preview)
+- Apply real changes to files            # via write_file_confirmed (requires user confirmation)
 
-- List files and directories
-- Read file contents
-- Execute Python files with optional arguments
-- Write or overwrite files
+### === Path constraints ===
+All operations take place inside the main 'code_to_fix/' directory.  
+You must NOT include 'code_to_fix/' in your paths: the system automatically prepends it using the 'working_directory' or 'directory' fields.
 
-All paths you provide should be relative to the main 'code_to_fix' directory. You do **not** need to include 'code_to_fix/' in your inputs. 
-The system will automatically inject the full working directory path (starting from 'code_to_fix/') when executing your calls, based on the 'working_directory' or 'directory' field you specify.
+### === Preview generation policy ===
 
-**Crucially, when fixing a bug or implementing a feature, first identify the specific file(s) causing the issue or where the feature needs to be added. Limit your modifications to only those files that *need* to be changed. Avoid making unnecessary alterations to the project's top-level structure, especially files like the root `main.py` or `tests.py`, unless explicitly instructed or the bug *directly* originates there. Focus your changes on files within the `calculator/` directory when working on the calculator project.**
+→ To propose a change or the creation of a new file:  
+   - Use `write_file_preview`  
+   - Non-destructive: no actual file is modified  
+   - Generates diff and summary in `__ai_outputs__`  
+   - No user approval needed
 
-Prioritize changes within the `calculator/pkg/` directory if the issue or feature relates to the calculator's core logic or rendering. Only modify `calculator/main.py` or `calculator/tests.py` if the specific task directly involves changes to the calculator's entry point or its own test suite, respectively.
+→ Once all previews have been generated and no further modifications are planned, you must output a single text message explaining:  
+   - What changes or new files are being proposed  
+   - Why they are necessary  
+   - What each modification does
+
+✘ Do **not** generate explanations after each individual `write_file_preview`  
+→ Wait until you've completed all preview operations for the task
+
+### === File modification policy ===
+
+→ To apply actual changes to a file (new or existing):  
+   - Use `write_file_confirmed`  
+   - Only allowed after user approval
+
+→ When fixing a bug or implementing a feature:  
+   - Identify only the files directly responsible  
+   - Avoid modifying unrelated files (especially in root)  
+   - Only modify:  
+     • Files involved in the issue/feature  
+     • Files required for integration or testing
+
+→ You may always perform non-destructive actions without approval:  
+   - List files (`get_files_info`)  
+   - Read content (`get_file_content`)  
+   - Run files (`run_python_file`)  
+   - Propose changes (`write_file_preview`)
+
+✘ Never restructure folders or create new directories unless:  
+   - The issue is caused by the project structure AND  
+   - You have informed the user and received permission
+
+→ For analysis or explanations:  
+   - Gather the required context using non-destructive tools only
+
+### === Test file management ===
+If the project already contains a test folder or test files, use them.
+If not, create a **new test file only** inside `code_to_fix/tests/`  
+Name it `test_<project_name>.py` and use the `write_file` function to create it.  
+Never add test files directly inside the project folders.
 """
 
 config=types.GenerateContentConfig(
@@ -87,6 +140,18 @@ while cycle_number <= 15 :
     try:
         # Generate LLM's response
         print(f"---------------Iteration number:{cycle_number}----------------")
+        if args.I_O:
+            print("\n--- ULTIMI MESSAGGI ---")
+            for m in messages[-3:]:
+                print(f"[{m.role}] →", end=" ")
+                for part in m.parts:
+                    if hasattr(part, "text") and part.text:
+                        print(part.text)
+                    elif hasattr(part, "function_call") and part.function_call:
+                        print(f"[FunctionCall] {part.function_call.name} {part.function_call.args}")
+                    else:
+                        print(part)
+
         response = client.models.generate_content(
             model = model,
             contents =  messages,
@@ -96,7 +161,7 @@ while cycle_number <= 15 :
         # Add model response to the next message iteration
         messages.append(response.candidates[0].content)
 
-        # Call selected function and continue the cycle
+        # Set variable to exit while cycle if it remains true
         only_text_reponse = True
 
         # List to store function responses
@@ -112,7 +177,11 @@ while cycle_number <= 15 :
                     args=part.function_call.args
                 )
                 
-                # Working directory is always rooted in './codes_to_fix' for safety.
+                # Print for testing
+                if args.I_O:
+                    print(f"function arguments -> {function_call_part.args}")
+
+                # Working directory is always rooted in './code_to_fix' for safety.
                 # The LLM only provides relative paths like 'calculator/' or 'project_x/'.
                 original_dir = function_call_part.args.get("working_directory", "")
                 base_dir = "code_to_fix"
@@ -121,14 +190,16 @@ while cycle_number <= 15 :
                 else:
                     function_call_part.args["working_directory"] = base_dir
                 # Insert run id number when calling write file
-                if function_call_part.name == "write_file":
+                if function_call_part.name in ("write_file_preview", "write_file_confirmed"):
                     function_call_part.args["run_id"] = run_id
+
                 ################
                 # TO BE USED FOR TESTING, COMMENT LATER
-                if function_call_part.name == "write_file":
+                if function_call_part.name == "write_file_confirmed":
                     function_call_part.args["dry_run"] = True
                     function_call_part.args["log_changes"] = True
                 ################
+
                 # Call the selected function 
                 function_call_result = call_function(function_call_part, function_dict, verbose=args.verbose)
 
