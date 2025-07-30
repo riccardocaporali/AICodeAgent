@@ -6,21 +6,16 @@ def clear_output_dirs():
     base_dir = os.path.abspath("__ai_outputs__")
     cleared = 0
 
-    # Iterate over each directory
-    for subdir in ["diffs", "backups", "logs", "summary"]:
-        path = os.path.join(base_dir, subdir)
+    if not os.path.exists(base_dir):
+        print("__ai_outputs__ does not exist.")
+        return
 
-        if not os.path.exists(path):
-            continue  # Skip non-existent folders
-
-        # Iterate over each file
-        for entry in os.listdir(path):
-            full_path = os.path.join(path, entry)
-
-            # Remove only run directories
-            if os.path.isdir(full_path) and entry.startswith("run_"):
-                shutil.rmtree(full_path, ignore_errors=True)
-                cleared += 1
+    # Remove run directories (run_XXX)
+    for entry in os.listdir(base_dir):
+        full_path = os.path.join(base_dir, entry)
+        if os.path.isdir(full_path) and entry.startswith("run_"):
+            shutil.rmtree(full_path, ignore_errors=True)
+            cleared += 1
 
     # Reset run_counter.txt
     counter_file = os.path.join(base_dir, "run_counter.txt")

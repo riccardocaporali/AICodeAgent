@@ -1,11 +1,8 @@
 import os
 from functions.internal.make_human_readable_diff import make_human_readable_diff
 
-def save_summary_entry(log_line, diff_lines, run_id=None):
-
+def save_summary_entry(summary_dir, function_name, function_args, log_line=None, diff_lines=None):
     # Define the summary directory (with optional run_id subfolder)
-    base_dir = os.path.abspath("__ai_outputs__")
-    summary_dir = os.path.join(base_dir, "summary", run_id) if run_id else os.path.join(base_dir, "summary")
     os.makedirs(summary_dir, exist_ok=True)
 
     # Define the summary file path
@@ -14,8 +11,25 @@ def save_summary_entry(log_line, diff_lines, run_id=None):
     # Convert diff lines to a human-readable format
     readable_diff = make_human_readable_diff(diff_lines) if diff_lines else ""
 
-    # Write the log line and corresponding diff to the summary file
     with open(summary_path, "a", encoding="utf-8") as f:
-        f.write(log_line)
+        # Header
+        f.write(f"\n### FUNCTION: {function_name}\n\n")
+
+        # Log section
+        if log_line:
+            f.write("1. **Log**\n")
+            f.write(f"   - {log_line}\n")
+
+        # Diff section (if any)
         if readable_diff:
-            f.write(readable_diff + "\n\n")
+            f.write("\n2. **Diff**\n")
+            for line in readable_diff.strip().splitlines():
+                f.write(f"   - {line}\n")
+
+        # Args section (if any)
+        if function_args:
+            f.write("\n3. **Arguments**\n")
+            for key, value in function_args.items():
+                f.write(f"   - {key}: {str(value).strip()}\n")
+
+        f.write("\n---\n")

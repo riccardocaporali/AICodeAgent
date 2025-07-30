@@ -2,7 +2,7 @@ import os
 import shutil
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from functions.internal.save_file import save_file
+from functions.internal.save_file_old import save_file
 from functions.internal.clear_output_dirs import clear_output_dirs
 from functions.internal.reset_test_env import reset_test_env
 from functions.internal.init_run_session import init_run_session

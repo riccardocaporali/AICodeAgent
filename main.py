@@ -181,17 +181,21 @@ while cycle_number <= 15 :
                 if args.I_O:
                     print(f"function arguments -> {function_call_part.args}")
 
-                # Working directory is always rooted in './code_to_fix' for safety.
-                # The LLM only provides relative paths like 'calculator/' or 'project_x/'.
+                # Define hard coded function arguments
+                # Snapshot of LLM generated function argument to be printed in summary (verbose mode)
+                if args.verbose:
+                    function_call_part.args["function_args"] = dict(function_call_part.args) 
+
+                # Working directory is always rooted in './code_to_fix' for safety. The LLM only provides relative paths
                 original_dir = function_call_part.args.get("working_directory", "")
                 base_dir = "code_to_fix"
                 if original_dir:
                     function_call_part.args["working_directory"] = os.path.join(base_dir, original_dir)
                 else:
                     function_call_part.args["working_directory"] = base_dir
-                # Insert run id number when calling write file
-                if function_call_part.name in ("write_file_preview", "write_file_confirmed"):
-                    function_call_part.args["run_id"] = run_id
+
+                # Insert run id number 
+                function_call_part.args["run_id"] = run_id
 
                 ################
                 # TO BE USED FOR TESTING, COMMENT LATER
@@ -199,6 +203,7 @@ while cycle_number <= 15 :
                     function_call_part.args["dry_run"] = True
                     function_call_part.args["log_changes"] = True
                 ################
+
 
                 # Call the selected function 
                 function_call_result = call_function(function_call_part, function_dict, verbose=args.verbose)
