@@ -7,10 +7,13 @@ def write_file_confirmed(working_directory, file_path, content, run_id, function
     try:
         # Create the path, check if it is secure and inside an existing directory
         full_path = get_secure_path(working_directory, file_path)
+        
+        # Additional variable
         function_name = "write_file_confirmed"
+
         # Stop the function and save changes if dry run 
         if os.path.exists(full_path):
-            save_file(run_id, function_name, function_args, source_path=full_path, content=content, log_changes=log_changes)
+            save_file(run_id, function_name, function_args, dry_run=dry_run, source_path=full_path, content=content, log_changes=log_changes)
             if dry_run:
                 return ("dry run is set to true, no changes applied to the file, "
                     "see proposed changes in __ai_outputs__")
@@ -19,7 +22,7 @@ def write_file_confirmed(working_directory, file_path, content, run_id, function
             return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
         else:
             file_name = os.path.basename(full_path)
-            save_file(run_id, function_name, function_args, file_name=file_name, content=content, log_changes=log_changes)
+            save_file(run_id, function_name, function_args, dry_run, file_name=file_name, content=content, log_changes=log_changes)
             if dry_run:
                 return ("dry run is set to true, new file not created, "
                         "see proposed changes in __ai_outputs__")

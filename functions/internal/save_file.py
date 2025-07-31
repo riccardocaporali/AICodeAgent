@@ -8,7 +8,7 @@ from functions.internal.save_logs import save_logs
 from functions.internal.save_diffs import save_diffs
 
 
-def save_file(run_id, function_name, function_args, file_name=None, source_path=None, content=None, log_changes=True, backup=True):
+def save_file(run_id, function_name, function_args, dry_run=True, file_name=None, source_path=None, content=None, log_changes=True):
     """
     Saves a file to a specified directory.
 
@@ -36,11 +36,14 @@ def save_file(run_id, function_name, function_args, file_name=None, source_path=
         backup_dir = os.path.join(base_dir, "backups") 
         diff_dir   = os.path.join(base_dir, "diffs")  
 
+    # Initialize diff_lines variable 
+    diff_lines = None
+ 
     # BACKUPS AND DIFFS
     # Create special cases for saving an existing file or save a new file with a specified content
     if source_path is not None and content is not None:
-        # 1. Backup
-        if backup:
+        # 1. Backup if dry run is false
+        if dry_run == False:
             save_backup(original_path, file_name, backup_dir)
 
         # 2. Compute difference row by row
@@ -60,7 +63,11 @@ def save_file(run_id, function_name, function_args, file_name=None, source_path=
 
     # Case of new file creation
     elif content is not None:
-        save_diffs(diff_dir, content, file_name)
+        new_lines = content.splitlines(keepends=True)
+        diff_lines = [
+            f"+ {line}" for line in new_lines
+        ]
+        save_diffs(diff_dir, diff_lines, file_name)
 
     # Error handling
     elif source_path is not None:
@@ -68,17 +75,14 @@ def save_file(run_id, function_name, function_args, file_name=None, source_path=
 
     else:
         raise ValueError("Either content or source_path must be provided")
-    
+
     # LOGS 
     if log_changes:
-         log_line = save_logs(file_name, base_dir, source_path, content, backup)
+         log_line = save_logs(file_name, base_dir, source_path, content, dry_run)
     else:
         log_line = None
 
     # SUMMARY
     # Solo se c'è un diff associato
     if log_line and (source_path or content):
-        save_summary_entry(base_dir, function_name, function_args, log_line=log_line, diff_lines = (
-        diff_lines if source_path is not None 
-        else content.splitlines(keepends=True)
-        ))
+        save_summary_entry(base_dir, function_name, function_args, log_line=log_line, diff_lines=diff_lines)
