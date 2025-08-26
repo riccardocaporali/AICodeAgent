@@ -78,7 +78,7 @@ def save_file(run_id, function_name, function_args, dry_run=True, file_name=None
 
     # LOGS 
     if log_changes:
-         log_line = save_logs(file_name, base_dir, source_path, content, dry_run)
+         log_line = save_logs(file_name, base_dir, function_name, source_path, content, dry_run)
     else:
         log_line = None
 

@@ -12,7 +12,7 @@ def get_file_content(working_directory, file_path, run_id, function_args=None, l
         base_dir = os.path.abspath(os.path.join("__ai_outputs__", run_id))
         # Function name
         function_name = "get_file_content"
-        # Get the file name
+        # Get the file name 
         file_name = os.path.basename(full_path)
         
         if not os.path.isfile(full_path):
@@ -25,15 +25,13 @@ def get_file_content(working_directory, file_path, run_id, function_args=None, l
             if len(file_content_string) == 10001:
                 file_content_string = file_content_string[:-1] + f'\n\n[...File "{file_path}" truncated at 10000 characters]'
 
-        # Create and save log
-        log_line = f"Read file content: {file_path}"
         # LOGS 
         if log_changes:
-            log_line = save_logs(file_name, base_dir, source_path, content, dry_run)
-        else:
-            log_line = None
+            log_line = save_logs(file_name, base_dir, function_name)
+
         # Save summary
-        save_summary_entry(base_dir, function_name, function_args)
+        if log_line:
+            save_summary_entry(base_dir, function_name, function_args, log_line)
 
         return file_content_string 
     
