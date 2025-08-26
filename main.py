@@ -13,6 +13,9 @@ from functions.internal.init_run_session import init_run_session
 # API and client definition
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
+if not api_key:
+    print("Missing GEMINI_API_KEY in environment. Aborting.")
+    sys.exit(1)
 client = genai.Client(api_key=api_key)
 
 # Generate run number
@@ -122,8 +125,9 @@ You must NOT include 'code_to_fix/' in your paths: the system automatically prep
 
 ### === Test file management ===
 If the project already contains a test folder or test files, use them.
-If not, create a **new test file only** inside `code_to_fix/tests/`  
-Name it `test_<project_name>.py` and use the `write_file` function to create it.  
+If not, create a **new test file only** inside `code_to_fix/tests/`.
+Name it `test_<project_name>.py`. First propose it with `write_file_preview`.
+Apply it **only after explicit user approval** using `write_file_confirmed`.
 Never add test files directly inside the project folders.
 """
 
@@ -162,7 +166,7 @@ while cycle_number <= 15 :
         messages.append(response.candidates[0].content)
 
         # Set variable to exit while cycle if it remains true
-        only_text_reponse = True
+        only_text_response = True
 
         # List to store function responses
         function_response_list = []
@@ -224,22 +228,21 @@ while cycle_number <= 15 :
                 )
 
                 # Found a function call → continue the iteration loop
-                only_text_reponse = False
+                only_text_response = False
 
             # Skip plain text parts (already handled or not actionable)
             elif part.text: 
                 pass
         
         # Print specifics
-        prompt_token_count = response.usage_metadata.prompt_token_count
-        candidates_token_count = response.usage_metadata.candidates_token_count
-        if args.verbose:
+        um = getattr(response, "usage_metadata", None)
+        if args.verbose and um:
             print(f"User prompt: {user_prompt}")
-            print(f"Prompt tokens: {prompt_token_count}")
-            print(f"Response tokens: {candidates_token_count}")
+            print(f"Prompt tokens: {um.prompt_token_count}")
+            print(f"Response tokens: {um.candidates_token_count}")
             
         # If the llm respond with only text, stop the cycle and print reponse
-        if only_text_reponse:
+        if only_text_response:
             print(response.text)
             break
 

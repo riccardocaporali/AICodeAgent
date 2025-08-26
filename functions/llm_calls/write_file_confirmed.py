@@ -17,16 +17,16 @@ def write_file_confirmed(working_directory, file_path, content, run_id, function
             if dry_run:
                 return ("dry run is set to true, no changes applied to the file, "
                     "see proposed changes in __ai_outputs__")
-            with open(full_path, "w") as f:
+            with open(full_path, "utf-8") as f:
                 f.write(content)
             return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
         else:
             file_name = os.path.basename(full_path)
-            save_file(run_id, function_name, function_args, dry_run, file_name=file_name, content=content, log_changes=log_changes)
+            save_file(run_id, function_name, function_args, dry_run=dry_run, file_name=file_name, content=content, log_changes=log_changes)
             if dry_run:
                 return ("dry run is set to true, new file not created, "
                         "see proposed changes in __ai_outputs__")
-            with open(full_path, "w") as f:
+            with open(full_path, "utf-8") as f:
                 f.write(content)
             return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
 

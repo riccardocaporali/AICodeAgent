@@ -4,6 +4,7 @@ from functions.internal.get_versioned_path import get_versioned_path
 
 def save_diffs(diff_dir, diff_content, file_name):
     os.makedirs(diff_dir, exist_ok=True)
+    file_name = os.path.basename(file_name)
     diff_path = get_secure_path(diff_dir, file_name)
     diff_path = get_versioned_path(diff_path)
 

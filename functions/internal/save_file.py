@@ -23,6 +23,7 @@ def save_file(run_id, function_name, function_args, dry_run=True, file_name=None
             file_name = os.path.basename(source_path)
         else:
             raise ValueError("file_name must be specified if source_path is None")
+    file_name = os.path.basename(file_name)
     
     # Check is source path is a valid file path
     if source_path is not None:
