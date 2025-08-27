@@ -20,9 +20,9 @@ def get_file_content(working_directory, file_path, run_id, function_args=None, l
 
         # File content extraction
         MAX_CHARS = 10000
-        with open(full_path, "r") as f:
+        with open(full_path, "r", encoding="utf-8", errors="replace") as f:
             file_content_string = f.read(MAX_CHARS+1)
-            if len(file_content_string) == 10001:
+            if len(file_content_string) > MAX_CHARS:
                 file_content_string = file_content_string[:-1] + f'\n\n[...File "{file_path}" truncated at 10000 characters]'
 
         # LOGS 

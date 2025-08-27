@@ -17,7 +17,7 @@ def write_file_confirmed(working_directory, file_path, content, run_id, function
             if dry_run:
                 return ("dry run is set to true, no changes applied to the file, "
                     "see proposed changes in __ai_outputs__")
-            with open(full_path, "utf-8") as f:
+            with open(full_path, "w", encoding="utf-8") as f:
                 f.write(content)
             return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
         else:
@@ -26,7 +26,7 @@ def write_file_confirmed(working_directory, file_path, content, run_id, function
             if dry_run:
                 return ("dry run is set to true, new file not created, "
                         "see proposed changes in __ai_outputs__")
-            with open(full_path, "utf-8") as f:
+            with open(full_path, "w", encoding="utf-8") as f:
                 f.write(content)
             return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
 
