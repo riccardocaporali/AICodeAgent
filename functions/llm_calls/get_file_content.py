@@ -24,7 +24,7 @@ def get_file_content(working_directory, file_path, run_id, function_args=None, l
             file_content_string = f.read(MAX_CHARS+1)
             if len(file_content_string) > MAX_CHARS:
                 file_content_string = file_content_string[:-1] + f'\n\n[...File "{file_path}" truncated at 10000 characters]'
-
+ 
         # LOGS 
         if log_changes:
             log_line = save_logs(file_name, base_dir, function_name)

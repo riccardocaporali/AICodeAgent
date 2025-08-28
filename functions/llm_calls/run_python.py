@@ -46,11 +46,15 @@ def run_python_file(working_directory, file_path, run_id, function_args=None, lo
             stdout = te.stdout or ""
             stderr = te.stderr or ""
             exit_code = "TIMEOUT"
-            run_data = [stdout, stderr, exit_code]
+            run_data = {
+                "stdout": stdout, 
+                "stderr": stderr, 
+                "exit_code": exit_code
+            }
 
             # Save log
             if log_changes:
-                log_line = save_logs(file_name, base_dir, function_name, extra_data=run_data)
+                log_line = save_logs(file_name, base_dir, function_name, dict_data=run_data)
 
             # Save summary
             if log_changes:
@@ -66,11 +70,15 @@ def run_python_file(working_directory, file_path, run_id, function_args=None, lo
         stdout = result.stdout or ""
         stderr = result.stderr or ""
         exit_code = result.returncode
-        run_data = [stdout, stderr, exit_code]
+        run_data = {
+            "stdout": stdout, 
+            "stderr": stderr, 
+            "exit_code": exit_code
+        }
 
         # Save log
         if log_changes:
-            log_line = save_logs(file_name, base_dir, function_name, extra_data=run_data)
+            log_line = save_logs(file_name, base_dir, function_name, dict_data=run_data)
 
         # Save summary
         if log_changes:

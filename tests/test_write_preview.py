@@ -14,6 +14,11 @@ reset_test_env(TEST_DIR)
 # Get the run_ids to create the backup/diffs/logs directory 
 run_id = init_run_session()
 
+RUN_DIR = os.path.join("__ai_outputs__", run_id)
+LOG_PATH = os.path.join(RUN_DIR, "actions.log")
+SUMMARY_PATH = os.path.join(RUN_DIR, "summary.txt")
+
+
 print("\n==== write_file TESTS ====\n")
 
 # Setup
@@ -96,6 +101,16 @@ result_7 = write_file_preview(
     function_args=manual_args
 )
 print(result_7)
+
+# === CHECKS ===
+# Check summary and logs 
+with open(LOG_PATH, "r", encoding="utf-8", errors="replace") as f:
+        log_content = f.read().strip()
+with open(SUMMARY_PATH, "r", encoding="utf-8", errors="replace") as f:
+        summary_content = f.read().strip()
+print("\n— CHECK 1: Did Test 1 write something new? —")
+print("Logs written:", "YES" if log_content else "NO ❌")
+print("Summary written:", "YES" if summary_content else "NO ❌")
 
 # Clear ai_ouputs sub directories if clear specified
 if "--clear" in sys.argv:

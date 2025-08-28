@@ -40,7 +40,7 @@ def get_files_info(working_directory, run_id, directory=None, function_args=None
 
         # Save log
         if log_changes:
-            log_line = save_logs(file_name, base_dir, function_name, extra_data=file_list)
+            log_line = save_logs(file_name, base_dir, function_name, list_data=file_list)
 
         # Save summary
         if log_changes:

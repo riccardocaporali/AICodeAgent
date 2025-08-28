@@ -8,14 +8,14 @@ from functions.internal.reset_test_env import reset_test_env
 from functions.internal.init_run_session import init_run_session
 from functions.internal.clear_output_dirs import clear_output_dirs
 
-# === CONFIGURATION ===
 TEST_DIR = "__test_env__"
 reset_test_env(TEST_DIR)
 # Get the run_ids to create the backup/diffs/logs directory 
 run_id = init_run_session()
 
-# Manual test write_file
-from datetime import datetime
+RUN_DIR = os.path.join("__ai_outputs__", run_id)
+LOG_PATH = os.path.join(RUN_DIR, "actions.log")
+SUMMARY_PATH = os.path.join(RUN_DIR, "summary.txt")
 
 print("\n==== write_file TESTS ====\n")
 
@@ -55,7 +55,7 @@ print("\n\u25B6\uFE0F Test 4: path escape attempt")
 result_4 = write_file_confirmed(working_dir, outside_path, content_v1, run_id=run_id )
 print(result_4)
 
-# 5. Attempt to write into a non exististing directory
+# 5. Attempt to write into a non existing directory
 print("\n\u25B6\uFE0F Test 5: Non existing directory")
 result_5 = write_file_confirmed("Fake_directory", new_file, content_v1, run_id=run_id )
 print(result_5)
@@ -108,6 +108,17 @@ result_8 = write_file_confirmed(
     function_args=manual_args
 )
 print(result_8)
+
+# === CHECKS ===
+# Check summary and logs 
+with open(LOG_PATH, "r", encoding="utf-8", errors="replace") as f:
+        log_content = f.read().strip()
+with open(SUMMARY_PATH, "r", encoding="utf-8", errors="replace") as f:
+        summary_content = f.read().strip()
+print("\n— CHECK 1: Did Test 1 write something new? —")
+print("Logs written:", "YES" if log_content else "NO ❌")
+print("Summary written:", "YES" if summary_content else "NO ❌")
+
 
 # Clear ai_ouputs sub directories if clear specified
 if "--clear" in sys.argv:

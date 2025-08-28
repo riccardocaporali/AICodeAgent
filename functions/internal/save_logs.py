@@ -6,7 +6,7 @@ def _clip(s):
     MAX = 500
     return s if len(s) <= MAX else s[:MAX] + " [truncated]"
 
-def save_logs(file_name, log_dir, function_name, source_path=None, content=None, dry_run=True, extra_data=None):
+def save_logs(file_name, log_dir, function_name, source_path=None, content=None, dry_run=True, list_data=None, dict_data=None):
     # Define global utility variables
     os.makedirs(log_dir, exist_ok=True)
     log_path = os.path.join(log_dir, "actions.log")
@@ -44,20 +44,20 @@ def save_logs(file_name, log_dir, function_name, source_path=None, content=None,
         log_line = f"[{timestamp}] Get content of directory: {file_name}\n"
         with open(log_path, "a", encoding="utf-8") as log_file:
             log_file.write(log_line)
-            if extra_data:
-                for data in extra_data:
+            if list_data:
+                for data in list_data:
                     s = _clip(str(data).rstrip("\n"))
                     log_file.write(f"   + {s}\n")  
             log_file.write("\n") 
-    
-    elif function_name  == "run_python_file":
+     
+    elif function_name == "run_python_file":
         log_line = f"[{timestamp}] Run the file: {file_name}\n"
         with open(log_path, "a", encoding="utf-8") as log_file:
             log_file.write(log_line)
-            if extra_data:
-                for data in extra_data:
-                    s = _clip(str(data).rstrip("\n"))
-                    log_file.write(f"   + {s}\n")  
-            log_file.write("\n") 
+            if dict_data:
+                for k, v in dict_data.items(): 
+                    s = _clip(f"{k}: {str(v).rstrip()}")
+                    log_file.write(f"   + {s}\n")
+            log_file.write("\n")
 
     return log_line

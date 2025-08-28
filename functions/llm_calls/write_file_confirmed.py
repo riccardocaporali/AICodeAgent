@@ -11,7 +11,7 @@ def write_file_confirmed(working_directory, file_path, content, run_id, function
         # Additional variable
         function_name = "write_file_confirmed"
 
-        # Stop the function and save changes if dry run 
+        # Stop the function and save changes if dry run. Save file update the logs and summary
         if os.path.exists(full_path):
             save_file(run_id, function_name, function_args, dry_run=dry_run, source_path=full_path, content=content, log_changes=log_changes)
             if dry_run:
@@ -29,6 +29,9 @@ def write_file_confirmed(working_directory, file_path, content, run_id, function
             with open(full_path, "w", encoding="utf-8") as f:
                 f.write(content)
             return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
+        
+
+    
 
     except Exception as e:
         return "Error: " + str(e)
