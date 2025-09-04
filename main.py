@@ -205,7 +205,6 @@ while cycle_number <= 15 :
                 # TO BE USED FOR TESTING, COMMENT LATER
                 if function_call_part.name == "write_file_confirmed":
                     function_call_part.args["dry_run"] = True
-                    function_call_part.args["log_changes"] = True
                 ################
 
 

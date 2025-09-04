@@ -8,7 +8,7 @@ from functions.internal.save_logs import save_logs
 from functions.internal.save_diffs import save_diffs
 
 
-def save_file(run_id, function_name, function_args, dry_run=True, file_name=None, source_path=None, content=None, log_changes=True):
+def save_file(run_id, function_name, function_args, dry_run=True, file_name=None, source_path=None, content=None):
     """
     Saves a file to a specified directory.
 
@@ -33,9 +33,8 @@ def save_file(run_id, function_name, function_args, dry_run=True, file_name=None
 
     # Define directories
     base_dir = os.path.abspath(os.path.join("__ai_outputs__", run_id))
-    if run_id is not None:
-        backup_dir = os.path.join(base_dir, "backups") 
-        diff_dir   = os.path.join(base_dir, "diffs")  
+    backup_dir = os.path.join(base_dir, "backups") 
+    diff_dir   = os.path.join(base_dir, "diffs")  
 
     # Initialize diff_lines variable 
     diff_lines = None
@@ -78,10 +77,7 @@ def save_file(run_id, function_name, function_args, dry_run=True, file_name=None
         raise ValueError("Either content or source_path must be provided")
 
     # LOGS 
-    if log_changes:
-         log_line = save_logs(file_name, base_dir, function_name, source_path, content, dry_run)
-    else:
-        log_line = None
+    log_line = save_logs(file_name, base_dir, function_name, source_path, content, dry_run, result="OK")
 
     # SUMMARY
     # Solo se c'è un diff associato

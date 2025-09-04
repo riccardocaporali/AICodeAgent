@@ -4,7 +4,7 @@ from functions.internal.get_secure_path import get_secure_path
 from functions.internal.save_summary_entry import save_summary_entry
 from functions.internal.save_logs import save_logs
 
-def get_files_info(working_directory, run_id, directory=None, function_args=None, log_changes=True):
+def get_files_info(working_directory, run_id, directory=None, function_args=None):
     """
     Lists all files and directories inside the specified target folder.
 
@@ -13,15 +13,18 @@ def get_files_info(working_directory, run_id, directory=None, function_args=None
     - Returns file names with their sizes and directory status.
     """
 
+    # Function name
+    function_name = "get_files_info"
+    # Define summary directory
+    base_dir = os.path.abspath(os.path.join("__ai_outputs__", run_id))
+    # Get the file name 
+    file_name = "unknown"
+
     try:
         # Determine the secure directory path
         target_path = directory if directory else "."
         # Create the path, check if it is secure and inside an existing directory
         full_path = get_secure_path(working_directory, target_path)
-        # Define summary directory
-        base_dir = os.path.abspath(os.path.join("__ai_outputs__", run_id))
-        # Function name
-        function_name = "get_files_info"
         # Get the file name 
         file_name = os.path.basename(os.path.normpath(full_path)) or "."
         
@@ -38,15 +41,21 @@ def get_files_info(working_directory, run_id, directory=None, function_args=None
             else:
                 file_list.append(f"- {file}: file_size={os.path.getsize(file_path)} bytes, is_dir=False")
 
-        # Save log
-        if log_changes:
-            log_line = save_logs(file_name, base_dir, function_name, list_data=file_list)
-
+        # Save logs
+        log_line = save_logs(file_name, base_dir, function_name, list_data=file_list,result="OK")
         # Save summary
-        if log_changes:
+        if log_line:
             save_summary_entry(base_dir, function_name, function_args, log_line)
 
         return "\n".join(file_list)
 
     except Exception as e:
+        details = str(e)
+
+        # Save logs
+        log_line = save_logs(file_name, base_dir, function_name,result="ERROR",details=details)
+        # Save summary
+        if log_line:
+            save_summary_entry(base_dir, function_name, function_args, log_line)
+
         return "Error: " + str(e)

@@ -8,6 +8,10 @@ def save_summary_entry(summary_dir, function_name, function_args, log_line=None,
     # Define the summary file path
     summary_path = os.path.join(summary_dir, "summary.txt")
 
+    # Fix indentation
+    clean = log_line.lstrip("\n").rstrip("\n")
+    bullet = "   - " + clean.replace("\n", "\n     ") + "\n"
+
     # Save summary for write file functions
     if function_name in ("write_file_preview", "write_file_confirmed"):
         if log_line is not None:
@@ -18,10 +22,9 @@ def save_summary_entry(summary_dir, function_name, function_args, log_line=None,
                 # Header
                 f.write(f"\n### FUNCTION: {function_name}\n\n")
 
-                # Log section
                 if log_line:
                     f.write("1. **Log**\n")
-                    f.write(f"   - {log_line}")
+                    f.write(bullet)
 
                 # Diff section (if any)
                 if readable_diff:
@@ -53,7 +56,8 @@ def save_summary_entry(summary_dir, function_name, function_args, log_line=None,
             # Log section
             if log_line:
                 f.write("1. **Log**\n")
-                f.write(f"   - {log_line}")
+                f.write(bullet)
+                
 
             # Args section (if any)
             if function_args:
@@ -71,7 +75,7 @@ def save_summary_entry(summary_dir, function_name, function_args, log_line=None,
             # Log section
             if log_line:
                 f.write("1. **Log**\n")
-                f.write(f"   - {log_line}")
+                f.write(bullet)
 
             # Args section (if any)
             if function_args:
@@ -89,7 +93,7 @@ def save_summary_entry(summary_dir, function_name, function_args, log_line=None,
             # Log section
             if log_line:
                 f.write("1. **Log**\n")
-                f.write(f"   - {log_line}")
+                f.write(bullet)
             
             # Args section (if any)
             if function_args:

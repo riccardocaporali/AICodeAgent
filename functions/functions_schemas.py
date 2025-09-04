@@ -87,10 +87,6 @@ schema_write_file_preview = types.FunctionDeclaration(
                 type=types.Type.STRING,
                 description="The proposed content to preview in the target file."
             ),
-            "log_changes": types.Schema(
-                type=types.Type.BOOLEAN,
-                description="If true, the proposed change will be logged and added to the summary file."
-            ),
         },
         required=["file_path", "content"]
     )
@@ -113,10 +109,6 @@ schema_write_file_confirmed = types.FunctionDeclaration(
             "content": types.Schema(
                 type=types.Type.STRING,
                 description="The content to write into the target file."
-            ),
-            "log_changes": types.Schema(
-                type=types.Type.BOOLEAN,
-                description="If true, the change will be logged and added to the summary file."
             ),
         },
         required=["file_path", "content"]

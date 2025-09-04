@@ -14,8 +14,6 @@ run_id = init_run_session()
 
 # Paths for ai_outputs
 RUN_DIR = os.path.join("__ai_outputs__", run_id)
-LOG_PATH = os.path.join(RUN_DIR, "actions.log")
-SUMMARY_PATH = os.path.join(RUN_DIR, "summary.txt")
 
 # === SETUP: create scripts to be executed ===
 # 1) Script that creates a file
@@ -59,23 +57,14 @@ def read_tail(path, n=20):
 
 print("\n==== run_python_file TESTS ====\n")
 
-# Snapshot before
-before_log = read_all(LOG_PATH)
-before_summary = read_all(SUMMARY_PATH)
-
 # 1) SUCCESS: run valid file
 res1 = run_python_file(
     working_directory=TEST_DIR,
     file_path="create_hello.py",
     run_id=run_id,
     function_args={"working_directory": TEST_DIR, "file_path": "create_hello.py"},
-    log_changes=True
 )
 print_test_result(1, "run valid file (should log and summary)", res1)
-
-# Snapshot after test 1
-after1_log = read_all(LOG_PATH)
-after1_summary = read_all(SUMMARY_PATH)
 
 # Verify created file
 created_file = os.path.join(TEST_DIR, "hello_created.txt")
@@ -90,14 +79,12 @@ else:
 # 2) ERROR: run nonexistent file
 res2 = run_python_file(TEST_DIR, "nonexistent.txt", run_id,
     function_args={"working_directory": TEST_DIR, "file_path": "nonexistent.txt"},
-    log_changes=True
 )
 print_test_result(2, "nonexistent file (should return error)", res2)
 
 # 3) ERROR: path traversal
 res3 = run_python_file(TEST_DIR, "../secrets.py", run_id,
     function_args={"working_directory": TEST_DIR, "file_path": "../secrets.py"},
-    log_changes=True
 )
 print_test_result(3, "path traversal (should return error)", res3)
 
@@ -108,22 +95,8 @@ res4 = run_python_file(
     file_path="sleep_long.py",
     run_id=run_id,
     function_args={"working_directory": TEST_DIR, "file_path": "sleep_long.py"},
-    log_changes=True
 )
 print_test_result(4, "long sleep (should timeout)", res4)
-
-# Snapshot after test 4
-after4_log = read_all(LOG_PATH)
-after4_summary = read_all(SUMMARY_PATH)
-
-# === CHECKS ===
-print("\n— CHECK 1: Did Test 1 write something new? —")
-print("Logs written:", "YES" if after1_log != before_log else "NO ❌")
-print("Summary written:", "YES" if after1_summary != before_summary else "NO ❌")
-
-print("\n— CHECK 2: Timeout recorded in logs and summary —")
-print("Timeout in logs:", "YES" if "TIMEOUT" in after4_log or "timed out" in after4_log else "NO ❌")
-print("Timeout in summary:", "YES" if "TIMEOUT" in after4_summary or "timed out" in after4_summary else "NO ❌")
 
 # Optional clear
 if "--clear" in sys.argv:

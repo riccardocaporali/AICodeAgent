@@ -8,6 +8,8 @@ from functions.internal.init_run_session import init_run_session
 from functions.internal.clear_output_dirs import clear_output_dirs
 from functions.llm_calls.get_file_content import get_file_content
 from functions.llm_calls.get_files_info import get_files_info
+from functions.llm_calls.write_file_preview import  write_file_preview
+from functions.llm_calls.write_file_confirmed import  write_file_confirmed
 
 # === INTRODUCTION ===
 # This is  a general test to execute of the llm function in sequence, the aim is to see if relative 
@@ -38,6 +40,9 @@ os.makedirs(TEST_DIR, exist_ok=True)
 file_path = os.path.join(TEST_DIR, "hello_created.txt")
 with open(file_path, "w", encoding="utf-8") as f:
     f.write("Hello, world!\\nThis is a test file.")
+"""
+content = """\
+# Proposed changes to hello.txt
 """
 # File to be executed by run_python_file
 os.makedirs(TEST_DIR, exist_ok=True)
@@ -79,24 +84,15 @@ def print_logs_and_summary_tail(label):
 
 print("\n==== LLM FUNCTIONS TESTS ====\n")
 
-# Snapshot before
-before_log = read_all(LOG_PATH)
-before_summary = read_all(SUMMARY_PATH)
-
 # 1) === Test run_python_file ===
 res1 = run_python_file(
     working_directory=TEST_DIR,
     file_path="create_hello.py",
     run_id=run_id,
     function_args={"working_directory": TEST_DIR, "file_path": "create_hello.py"},
-    log_changes=True
 )
 print_test_result(1, "run valid file (should log and summary)", res1)
 print_logs_and_summary_tail("AFTER TEST 1")
-
-# Snapshot after test 1
-after1_log = read_all(LOG_PATH)
-after1_summary = read_all(SUMMARY_PATH)
 
 # Verify created file
 created_file = os.path.join(TEST_DIR, "hello_created.txt")
@@ -114,33 +110,41 @@ res2 = get_file_content(
     file_path="hello.txt",
     run_id=run_id,
     function_args={"working_directory": TEST_DIR, "file_path": "hello.txt"},
-    log_changes=True
 )
 print_test_result(2, "read valid file (should log and summary)", res2)
-print_logs_and_summary_tail("AFTER TEST 2")
-# Snapshot after test 2
-after2_log = read_tail(LOG_PATH, n=1000)
-after2_summary = read_tail(SUMMARY_PATH, n=2000)
 
-# 3) === Test get_file_content ===
+# 3) === Test get_file_info ===
 res3 = get_files_info(
     working_directory=TEST_DIR,
     run_id=run_id,
     directory="pkg",
     function_args={"working_directory": TEST_DIR, "directory": "pkg"},
-    log_changes=True
 )
 print_test_result(3, "list contents of pkg/", res3)
-print_logs_and_summary_tail("AFTER TEST 3")
-after3_log = read_tail(LOG_PATH, n=2000)
-after3_summary = read_tail(SUMMARY_PATH, n=4000)
 
+# 4) === write_file_preview ===
+proposed_content = """\
+# Proposed changes to hello.txt
+"""
+res4 = write_file_preview(
+    working_directory=TEST_DIR,
+    file_path="hello.txt",
+    content=proposed_content,
+    run_id=run_id,
+    function_args={"working_directory": TEST_DIR, "file_path": "hello.txt"},
+)
+print_test_result(4, "write_file_preview on hello.txt", res4)
 
-# === CHECKS ===
-print("\n— CHECK 1: Did Test 1 write something new? —")
-print("Logs written:", "YES" if after1_log != before_log else "NO ❌")
-print("Summary written:", "YES" if after1_summary != before_summary else "NO ❌")
-
+# 5) === write_file_confirmed ===
+res5 = write_file_confirmed(
+    working_directory=TEST_DIR,
+    file_path="hello.txt",
+    content=proposed_content,
+    dry_run=False,
+    run_id=run_id,
+    function_args={"working_directory": TEST_DIR, "file_path": "hello.txt"},
+)
+print_test_result(5, "write_file_confirmed on hello.txt", res5)
 
 # Optional clear
 if "--clear" in sys.argv:
