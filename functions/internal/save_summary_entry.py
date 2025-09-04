@@ -23,20 +23,23 @@ def save_summary_entry(summary_dir, function_name, function_args, log_line=None,
                 f.write(f"\n### FUNCTION: {function_name}\n\n")
 
                 if log_line:
-                    f.write("1. **Log**\n")
+                    f.write(" 1. **Log**\n")
                     f.write(bullet)
 
                 # Diff section (if any)
                 if readable_diff:
-                    f.write("\n2. **Diff**\n")
+                    f.write("\n 2. **Diff**\n")
                     for line in readable_diff.strip().splitlines():
                         f.write(f"   - {line}\n")
 
-                # Args section (if any)
                 if function_args:
-                    f.write("\n3. **Arguments**\n")
+                    f.write("\n 3. **Arguments**\n")
                     for key, value in function_args.items():
-                        f.write(f"   - {key}: {str(value).strip()}\n")
+                        lines = str(value).splitlines()
+                        if lines:
+                            f.write(f"   - {key}: {lines[0]}\n")
+                            for line in lines[1:]:
+                                f.write(f"     {line}\n")
 
                 f.write("\n---\n")
         else:
@@ -55,15 +58,19 @@ def save_summary_entry(summary_dir, function_name, function_args, log_line=None,
 
             # Log section
             if log_line:
-                f.write("1. **Log**\n")
+                f.write(" 1. **Log**\n")
                 f.write(bullet)
                 
 
             # Args section (if any)
             if function_args:
-                f.write("\n2. **Arguments**\n")
+                f.write("\n 3. **Arguments**\n")
                 for key, value in function_args.items():
-                    f.write(f"   - {key}: {str(value).strip()}\n")
+                    lines = str(value).splitlines()
+                    if lines:
+                        f.write(f"   - {key}: {lines[0]}\n")
+                        for line in lines[1:]:
+                            f.write(f"     {line}\n")
 
 
     # Save summary get_files_info function
@@ -74,14 +81,18 @@ def save_summary_entry(summary_dir, function_name, function_args, log_line=None,
 
             # Log section
             if log_line:
-                f.write("1. **Log**\n")
+                f.write(" 1. **Log**\n")
                 f.write(bullet)
 
             # Args section (if any)
             if function_args:
-                f.write("\n2. **Arguments**\n")
+                f.write("\n 3. **Arguments**\n")
                 for key, value in function_args.items():
-                    f.write(f"   - {key}: {str(value).strip()}\n")
+                    lines = str(value).splitlines()
+                    if lines:
+                        f.write(f"   - {key}: {lines[0]}\n")
+                        for line in lines[1:]:
+                            f.write(f"     {line}\n")
     
 
     # Save summary run_python_file function
@@ -92,13 +103,17 @@ def save_summary_entry(summary_dir, function_name, function_args, log_line=None,
 
             # Log section
             if log_line:
-                f.write("1. **Log**\n")
+                f.write(" 1. **Log**\n")
                 f.write(bullet)
             
             # Args section (if any)
             if function_args:
-                f.write("\n2. **Arguments**\n")
+                f.write("\n 3. **Arguments**\n")
                 for key, value in function_args.items():
-                    f.write(f"   - {key}: {str(value).strip()}\n")
+                    lines = str(value).splitlines()
+                    if lines:
+                        f.write(f"   - {key}: {lines[0]}\n")
+                        for line in lines[1:]:
+                            f.write(f"     {line}\n")
 
 
