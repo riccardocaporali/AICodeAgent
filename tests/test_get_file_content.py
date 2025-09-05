@@ -46,7 +46,7 @@ res1 = get_file_content(
 )
 print_test_result(1, "read valid file (should log and summary)", res1)
 
-# 2) Read not existent file, error is expected (no summary and logs present)
+# 2) Read not existent file, error is expected 
 res2 = get_file_content(
     working_directory=TEST_DIR,
     file_path="nonexistent.txt",
@@ -55,7 +55,7 @@ res2 = get_file_content(
 )
 print_test_result(2, "read nonexistent file (should return error)", res2)
 
-# 3) Path trasversal, error is expected (no summary and logs present)
+# 3) Path trasversal, error is expected 
 res3 = get_file_content(
     working_directory=TEST_DIR,
     file_path="../secrets.py",

@@ -60,7 +60,7 @@ res2 = get_files_info(
 )
 print_test_result(2, "list contents of base test directory", res2)
 
-# 3) ERROR: attempt to access outside of test_env (no logs or summary)
+# 3) ERROR: attempt to access outside of test_env 
 res3 = get_files_info(
     working_directory=TEST_DIR,
     run_id=run_id,
@@ -69,7 +69,7 @@ res3 = get_files_info(
 )
 print_test_result(3, "attempt to escape working directory", res3)
 
-# 4) ERROR: non-existent subdir in test_env (no logs or summary)
+# 4) ERROR: non-existent subdir in test_env 
 res4 = get_files_info(
     working_directory=TEST_DIR,
     run_id=run_id,

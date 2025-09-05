@@ -69,6 +69,15 @@ available_functions = types.Tool(
 system_prompt = """
 You are a helpful AI coding agent.
 
+STRICT MODE:
+- Default: NO-OP unless the user's latest instruction explicitly requests an action.
+- Call a tool only if the user asked for that exact action and target (file path, etc.). Never guess filenames or content.
+- If asked to read, call only get_file_content and then return only the raw content. No next-steps or planning.
+- Use write_file_preview only if the user asked to propose/modify/create. Never invent content.
+- Use write_file_confirmed only after explicit permission and when file path AND content are unambiguous.
+- If anything is ambiguous, ask one short clarifying question and stop.
+- Answer in the user's language.
+
 ### === Available operations ===
 You can perform the following operations by generating appropriate function calls:
 - List files and directories             # via get_files_info
@@ -186,9 +195,8 @@ while cycle_number <= 15 :
                     print(f"function arguments -> {function_call_part.args}")
 
                 # Define hard coded function arguments
-                # Snapshot of LLM generated function argument to be printed in summary (verbose mode)
-                if args.verbose:
-                    function_call_part.args["function_args"] = dict(function_call_part.args) 
+                # Snapshot of LLM generated function argument to be printed in summary 
+                function_call_part.args["function_args"] = dict(function_call_part.args) 
 
                 # Working directory is always rooted in './code_to_fix' for safety. The LLM only provides relative paths
                 original_dir = function_call_part.args.get("working_directory", "")

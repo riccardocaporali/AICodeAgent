@@ -17,6 +17,9 @@ def get_secure_path(working_directory, file_name):
     path = os.path.abspath(os.path.join(working_directory, file_name))
     working_directory_path = os.path.abspath(working_directory)
 
+    if os.path.isabs(file_name):
+        raise PermissionError(f"Invalid filename: '{file_name}' is absolute")
+
     if os.path.commonpath([working_directory_path, path]) != working_directory_path:
         raise PermissionError(f"Unauthorized path: must stay inside working_directory ({working_directory})")
     
