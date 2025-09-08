@@ -9,6 +9,7 @@ from functions import functions_schemas as schemas
 from functions.functions_schemas import function_dict
 from functions.call_function import call_function
 from functions.internal.init_run_session import init_run_session
+from functions.internal.save_last_run_info import save_last_run_info
 
 # API and client definition
 load_dotenv()
@@ -241,6 +242,9 @@ while cycle_number <= 15 :
             elif part.text: 
                 pass
         
+        # Save the text response in a file for next llm run
+        save_last_run_info(response.text, run_id)
+
         # Print specifics
         um = getattr(response, "usage_metadata", None)
         if args.verbose and um:
