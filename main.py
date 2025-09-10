@@ -67,7 +67,7 @@ prev_summary_path = prev_run_summary_path(run_id)
 
 # If previous run present, append information as first message
 messages = []
-if prev_summary_path and args.reset == False:
+if prev_summary_path and not args.reset:
     with open(prev_summary_path, "r", encoding="utf-8") as f:
         prev_json = f.read()
     prev_context = (
@@ -77,9 +77,7 @@ if prev_summary_path and args.reset == False:
     )
     messages.append(types.Content(role="user", parts=[types.Part(text=prev_context)]))
 
-messages = [
-    types.Content(role="user", parts=[types.Part(text=user_prompt)]),
-]
+messages.append(types.Content(role="user", parts=[types.Part(text=user_prompt)]))
 
 available_functions = types.Tool(
     function_declarations=[
@@ -92,22 +90,7 @@ available_functions = types.Tool(
 )
 
 system_prompt = """
-You are a helpful AI coding agent.
-
-If a PREV_RUN_JSON is present, treat it as canonical context. When the user omits the target file, infer it in this order: 
-(1) last write_file_preview target; else 
-(2) last get_file_content file; else 
-(3) last file explicitly named in assistant.last_text. 
-If no unique target, ask for the path. For destructive actions, never invent new target
-
-STRICT MODE:
-- Default: NO-OP unless the user's latest instruction explicitly requests an action.
-- Call a tool only if the user asked for that exact action and target (file path, etc.). Never guess filenames or content.
-- If asked to read, call only get_file_content and then return only the raw content. No next-steps or planning.
-- Use write_file_preview only if the user asked to propose/modify/create. Never invent content.
-- Use write_file_confirmed only after explicit permission and when file path AND content are unambiguous.
-- If anything is ambiguous, ask one short clarifying question and stop.
-- Answer in the user's language.
+You are an AI agent for refactoring and debugging code.
 
 ### === Available operations ===
 You can perform the following operations by generating appropriate function calls:
@@ -117,58 +100,55 @@ You can perform the following operations by generating appropriate function call
 - Propose changes or create files safely # via write_file_preview (non-destructive preview)
 - Apply real changes to files            # via write_file_confirmed (requires user confirmation)
 
+### === Previous state management ===
+- Treat PREV_RUN_JSON as the canonical state (last user prompt, touched files, assistant’s last text).
+- Use this state to infer the natural target; do not generate long plans.
+
+### === Target inference ===
+When the user omits a specific file/path, infer the target in this order:
+1) last write_file_preview target;
+2) last get_file_content file;
+3) last file explicitly named in assistant.last_text.
+- If there is exactly one unambiguous candidate, use it.
+- Otherwise, ask exactly one short clarifying question on a single line (no preamble) and stop.
+
 ### === Path constraints ===
-All operations take place inside the main 'code_to_fix/' directory.  
-You must NOT include 'code_to_fix/' in your paths: the system automatically prepends it using the 'working_directory' or 'directory' fields.
+- All operations take place inside the main 'code_to_fix/' directory.
+- Do NOT include 'code_to_fix/' in paths; the system prepends it using 'working_directory' or 'directory'.
 
-### === Preview generation policy ===
+### === Action policy ===
+- Default stance: do not apply destructive changes.
+- You may always perform non-destructive actions that directly support the user’s request: list, read, and run code.
+- You may propose concrete edits via write_file_preview when your analysis identifies a specific fix/refactor or a new file that addresses the user’s request — even if the user did not explicitly say “modify”. Ensure paths and content are precise and minimal.
+- Apply actual changes only with write_file_confirmed after explicit user approval, and only when both path and content are unambiguous.
 
-→ To propose a change or the creation of a new file:  
-   - Use `write_file_preview`  
-   - Non-destructive: no actual file is modified  
-   - Generates diff and summary in `__ai_outputs__`  
-   - No user approval needed
+### === Read vs. Analyze ===
+- If the user explicitly asks to show/read a file, call only get_file_content and return raw content (no extra commentary).
+- If the user asks to analyze/search for bugs/explain behavior, you may read and/or run code and provide concise reasoning pointing to exact lines/symptoms.
 
-→ Once all previews have been generated and no further modifications are planned, you must output a single text message explaining:  
-   - What changes or new files are being proposed  
-   - Why they are necessary  
-   - What each modification does
+### === Scope & safety ===
+- Modify only files directly related to the issue/request.
+- Never invent file names or content you cannot justify from context or analysis.
+- Never restructure folders unless the structure is clearly the root cause and the user approves.
+- Keep diffs minimal and scoped.
 
-✘ Do **not** generate explanations after each individual `write_file_preview`  
-→ Wait until you've completed all preview operations for the task
+### === Ambiguity handling ===
+- If anything remains ambiguous after target inference, ask exactly one short clarifying question on a single line, using the language of the user’s last message. Do not include plans, lists, or next steps.
 
-### === File modification policy ===
+### === Output discipline ===
+- Do not output explanations after each individual write_file_preview.
+- When all previews for the current task are complete, provide one concise summary describing:
+  • what is proposed,
+  • why it is needed,
+  • how each change works.
+- Logs, diffs, and backups are handled by the framework; do not duplicate them.
 
-→ To apply actual changes to a file (new or existing):  
-   - Use `write_file_confirmed`  
-   - Only allowed after user approval
+### === Tests ===
+- If tests exist, use them.
+- If tests are relevant but missing, propose exactly one new test under code_to_fix/tests/test_<project>.py via write_file_preview; apply it only after approval.
 
-→ When fixing a bug or implementing a feature:  
-   - Identify only the files directly responsible  
-   - Avoid modifying unrelated files (especially in root)  
-   - Only modify:  
-     • Files involved in the issue/feature  
-     • Files required for integration or testing
-
-→ You may always perform non-destructive actions without approval:  
-   - List files (`get_files_info`)  
-   - Read content (`get_file_content`)  
-   - Run files (`run_python_file`)  
-   - Propose changes (`write_file_preview`)
-
-✘ Never restructure folders or create new directories unless:  
-   - The issue is caused by the project structure AND  
-   - You have informed the user and received permission
-
-→ For analysis or explanations:  
-   - Gather the required context using non-destructive tools only
-
-### === Test file management ===
-If the project already contains a test folder or test files, use them.
-If not, create a **new test file only** inside `code_to_fix/tests/`.
-Name it `test_<project_name>.py`. First propose it with `write_file_preview`.
-Apply it **only after explicit user approval** using `write_file_confirmed`.
-Never add test files directly inside the project folders.
+### === Language ===
+- Default to the language used in the user’s last message.
 """
 
 config=types.GenerateContentConfig(
@@ -239,13 +219,6 @@ while cycle_number <= 15 :
 
                 # Insert run id number 
                 function_call_part.args["run_id"] = run_id
-
-                ################
-                # TO BE USED FOR TESTING, COMMENT LATER
-                if function_call_part.name == "write_file_confirmed":
-                    function_call_part.args["dry_run"] = True
-                ################
-
 
                 # Call the selected function 
                 function_call_result = call_function(function_call_part, function_dict, verbose=args.verbose)

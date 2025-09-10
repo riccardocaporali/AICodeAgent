@@ -27,17 +27,22 @@ def save_run_info(messages, run_id):
     pending = []
     last_text = ""
 
-    # Extract the first user prompt of the run ---
+    # Extract the current run's user prompt (skip any PREV_RUN_JSON context message)
     user_prompt = ""
+    _last_any_user = ""
     for msg in (messages or []):
         if getattr(msg, "role", None) == "user":
             for p in (getattr(msg, "parts", []) or []):
                 t = getattr(p, "text", None)
-                if t and t.strip():
-                    user_prompt = t.strip()
-                    break
-            if user_prompt:
-                break
+                if not t or not t.strip():
+                    continue
+                t_stripped = t.strip()
+                _last_any_user = t_stripped
+                if not t_stripped.startswith("PREV_RUN_JSON"):
+                    user_prompt = t_stripped  # keep last non-PREV_RUN_JSON user prompt
+
+    if not user_prompt:
+        user_prompt = _last_any_user  # fallback to last user text if all were PREV_RUN_JSON
 
     for msg in (messages or []):
         role = getattr(msg, "role", None)
@@ -110,7 +115,6 @@ def save_run_info(messages, run_id):
         "header": {
             "run_id": run_id,
             "ts": time.time(),
-            "phase": "NONE",
             "user_prompt": user_prompt,
             "user_prompt_len": len(user_prompt),
             "user_prompt_brief": brief_text(user_prompt, 160),
