@@ -84,8 +84,8 @@ available_functions = types.Tool(
         schemas.schema_get_files_info,
         schemas.schema_get_file_content,
         schemas.schema_run_python_file,
-        schemas.schema_write_file_preview,
-        schemas.schema_write_file_confirmed
+        schemas.schema_propose_changes,
+        schemas.schema_apply_changes
     ]
 )
 
@@ -97,8 +97,8 @@ You can perform the following operations by generating appropriate function call
 - List files and directories             # via get_files_info
 - Read file contents                     # via get_file_content
 - Execute Python files with arguments    # via run_python_file
-- Propose changes or create files safely # via write_file_preview (non-destructive preview)
-- Apply real changes to files            # via write_file_confirmed (requires user confirmation)
+- Propose changes or create files safely # via propose_changes (non-destructive preview)
+- Apply real changes to files            # via apply_changes (requires user confirmation)
 
 ### === Previous state management ===
 - Treat PREV_RUN_JSON as the canonical state (last user prompt, touched files, assistant’s last text).
@@ -106,7 +106,7 @@ You can perform the following operations by generating appropriate function call
 
 ### === Target inference (for modifications only) ===
 When the user omits a specific file/path and the request implies editing or creating files, infer the target in this order:
-1) last write_file_preview target;
+1) last propose_changes target;
 2) last get_file_content file;
 3) last file explicitly named in assistant.last_text.
 - If there is exactly one unambiguous candidate, use it.
@@ -119,7 +119,7 @@ When the user omits a specific file/path and the request implies editing or crea
 ### === Action policy ===
 - Default stance: do not apply destructive changes.
 - You may always perform non-destructive actions that directly support the user’s request: list, read, and run code.
-- Propose edits via write_file_preview when your analysis identifies a specific fix/refactor (even if not explicitly requested). Apply with write_file_confirmed only after explicit approval.
+- Propose edits via propose_changes when your analysis identifies a specific fix/refactor (even if not explicitly requested). Apply with apply_changes only after explicit approval.
 - Default = minimal_fix: prefer the smallest patch that addresses the issue; no new features/renames unless explicitly requested.
 
 ### === Exploration (read-only) ===
@@ -140,7 +140,7 @@ When the user omits a specific file/path and the request implies editing or crea
 - If anything remains ambiguous after target inference, ask exactly one short clarifying question on a single line, using the language of the user’s last message. Do not include plans, lists, or next steps.
 
 ### === Output discipline ===
-- Do not output explanations after each individual write_file_preview.
+- Do not output explanations after each individual propose_changes.
 - When all previews for the current task are complete, provide one concise summary describing:
   • what is proposed,
   • why it is needed,
@@ -149,7 +149,7 @@ When the user omits a specific file/path and the request implies editing or crea
 
 ### === Tests ===
 - If tests exist, use them.
-- If tests are relevant but missing, propose exactly one new test under code_to_fix/tests/test_<project>.py via write_file_preview; apply it only after approval.
+- If tests are relevant but missing, propose exactly one new test under code_to_fix/tests/test_<project>.py via propose_changes; apply it only after approval.
 
 ### === Language ===
 - Default to the language used in the user’s last message.

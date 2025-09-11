@@ -5,16 +5,16 @@ from google.genai import types
 from functions.llm_calls.get_files_info import get_files_info
 from functions.llm_calls.get_file_content import get_file_content
 from functions.llm_calls.run_python import run_python_file
-from functions.llm_calls.write_file_preview import write_file_preview
-from functions.llm_calls.write_file_confirmed import write_file_confirmed
+from functions.llm_calls.propose_changes import propose_changes
+from functions.llm_calls.apply_changes import apply_changes
 
 # Define the dictionary of functions
 function_dict = {
     "get_files_info" : get_files_info,
     "get_file_content" : get_file_content,
     "run_python_file" : run_python_file,
-    "write_file_preview" : write_file_preview,
-    "write_file_confirmed" : write_file_confirmed,
+    "propose_changes" : propose_changes,
+    "apply_changes" : apply_changes,
 }
 
 schema_get_files_info = types.FunctionDeclaration(
@@ -69,8 +69,8 @@ schema_run_python_file = types.FunctionDeclaration(
     ),
 )
 
-schema_write_file_preview = types.FunctionDeclaration(
-    name="write_file_preview",
+schema_propose_changes = types.FunctionDeclaration(
+    name="propose_changes",
     description="Generate a preview of the proposed changes to a file. No actual file is modified. The diff and summary are saved in the __ai_outputs__ directory.",
     parameters=types.Schema(
         type=types.Type.OBJECT,
@@ -92,8 +92,8 @@ schema_write_file_preview = types.FunctionDeclaration(
     )
 )
 
-schema_write_file_confirmed = types.FunctionDeclaration(
-    name="write_file_confirmed",
+schema_apply_changes = types.FunctionDeclaration(
+    name="apply_changes",
     description="Overwrite the target file with the provided content. If the file does not exist, it will be created. This operation applies real changes to the target file. Use only after user confirmation.",
     parameters=types.Schema(
         type=types.Type.OBJECT,

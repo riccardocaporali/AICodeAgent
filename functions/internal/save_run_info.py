@@ -101,7 +101,7 @@ def save_run_info(messages, run_id):
                     stderr = (me.group(1) if me else "").strip()
                     extras["stdout_len"] = len(stdout)
                     extras["stderr_len"] = len(stderr)
-                elif name in ("write_file_preview", "write_file_confirmed"):
+                elif name in ("propose_changes", "apply_changes"):
                     a = rec.get("args", {})
                     extras["target"] = a.get("file_path")
                     if "content_len" in a:

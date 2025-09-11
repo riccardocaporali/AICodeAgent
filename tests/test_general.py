@@ -8,8 +8,8 @@ from functions.internal.init_run_session import init_run_session
 from functions.internal.clear_output_dirs import clear_output_dirs
 from functions.llm_calls.get_file_content import get_file_content
 from functions.llm_calls.get_files_info import get_files_info
-from functions.llm_calls.write_file_preview import  write_file_preview
-from functions.llm_calls.write_file_confirmed import  write_file_confirmed
+from functions.llm_calls.propose_changes import  propose_changes
+from functions.llm_calls.apply_changes import  apply_changes
 
 # === INTRODUCTION ===
 # This is  a general test to execute of the llm function in sequence, the aim is to see if relative 
@@ -122,21 +122,21 @@ res3 = get_files_info(
 )
 print_test_result(3, "list contents of pkg/", res3)
 
-# 4) === write_file_preview ===
+# 4) === propose_changes ===
 proposed_content = """\
 # Proposed changes to hello.txt
 """
-res4 = write_file_preview(
+res4 = propose_changes(
     working_directory=TEST_DIR,
     file_path="hello.txt",
     content=proposed_content,
     run_id=run_id,
     function_args={"working_directory": TEST_DIR, "file_path": "hello.txt"},
 )
-print_test_result(4, "write_file_preview on hello.txt", res4)
+print_test_result(4, "propose_changes on hello.txt", res4)
 
-# 5) === write_file_confirmed ===
-res5 = write_file_confirmed(
+# 5) === apply_changes ===
+res5 = apply_changes(
     working_directory=TEST_DIR,
     file_path="hello.txt",
     content=proposed_content,
@@ -144,7 +144,7 @@ res5 = write_file_confirmed(
     run_id=run_id,
     function_args={"working_directory": TEST_DIR, "file_path": "hello.txt"},
 )
-print_test_result(5, "write_file_confirmed on hello.txt", res5)
+print_test_result(5, "apply_changes on hello.txt", res5)
 
 # Optional clear
 if "--clear" in sys.argv:
