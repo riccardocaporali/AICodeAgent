@@ -4,7 +4,7 @@ def save_run_info(messages, run_id):
     """
     Build a compact, structured ledger of the last run from `messages`
     and save two files under __ai_outputs__/run_<id>/:
-      - run_summary.json  (structured: header, calls, assistant.last_text)
+      - run_summary.json  (structured: header, calls, proposals, assistant.last_text)
       - llm_message       (plain last assistant text)
     """
     base_dir = os.path.abspath(os.path.join("__ai_outputs__", run_id))
@@ -111,6 +111,20 @@ def save_run_info(messages, run_id):
                 rec["extras"] = extras
                 calls.append(rec)
 
+    # --- Extract proposals for next-run gating ---
+    proposals = []
+    pid = 1
+    for rec in calls:
+        if rec.get("t") == "propose_changes" and rec.get("status") == "OK":
+            proposals.append({
+                "id": pid,
+                "wd": rec.get("args", {}).get("wd"),
+                "file_path": (rec.get("extras") or {}).get("target"),
+                "content_len": (rec.get("extras") or {}).get("content_len"),
+                "brief": rec.get("brief"),
+            })
+            pid += 1
+
     summary = {
         "header": {
             "run_id": run_id,
@@ -120,6 +134,7 @@ def save_run_info(messages, run_id):
             "user_prompt_brief": brief_text(user_prompt, 160),
         },
         "calls": calls[-10:],  # keep last N calls
+        "proposals": proposals,  # <--- added for gating in next run
         "assistant": {
             "last_text": brief_text(last_text, 2000),
         },
