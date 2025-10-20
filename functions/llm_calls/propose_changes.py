@@ -7,9 +7,9 @@ from functions.internal.save_summary_entry import save_summary_entry
 from functions.internal.save_logs import save_logs
 
 
-def write_file_preview(working_directory, file_path, content, run_id, function_args=None):
+def propose_changes(working_directory, file_path, content, run_id, function_args=None):
     # Function name
-    function_name = "write_file_preview"
+    function_name = "propose_changes"
     # Define summary directory
     base_dir = os.path.abspath(os.path.join("__ai_outputs__", run_id))
     # Get the file name 

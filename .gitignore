@@ -7,7 +7,6 @@ wheels/
 *.egg-info
 .venv
 .env
-README.md
 .python-version
 uv.lock
 __ai_outputs__

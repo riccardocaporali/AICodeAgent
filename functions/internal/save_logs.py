@@ -24,7 +24,7 @@ def save_logs(
 
     log_line = None
 
-    if function_name in ("write_file_preview", "write_file_confirmed"):
+    if function_name in ("propose_changes", "apply_changes"):
         if source_path is not None and content is not None:
             if dry_run:
                 log_line = (
