@@ -94,23 +94,13 @@ schema_propose_changes = types.FunctionDeclaration(
 
 schema_apply_changes = types.FunctionDeclaration(
     name="apply_changes",
-    description="Overwrite the target file with the provided content. If the file does not exist, it will be created. This operation applies real changes to the target file. Use only after user confirmation.",
+    description=(
+        "Apply the last approved proposal saved in the previous run summary. "
+        "It requires no input parameters; the tool automatically loads file and content from the previous summary."
+    ),
     parameters=types.Schema(
         type=types.Type.OBJECT,
-        properties={
-            "working_directory": types.Schema(
-                type=types.Type.STRING,
-                description="Path relative to the 'code_to_fix' directory. Use this to specify the subfolder containing the project to analyze (e.g., 'calculator' or 'project_01/module'). If not provided, 'file_path' is considered relative to 'code_to_fix'."
-            ),
-            "file_path": types.Schema(
-                type=types.Type.STRING,
-                description="The relative path to the target file, starting from the working directory."
-            ),
-            "content": types.Schema(
-                type=types.Type.STRING,
-                description="The content to write into the target file."
-            ),
-        },
-        required=["file_path", "content"]
+        properties={},
+        required=[]
     )
 )

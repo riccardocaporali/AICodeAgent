@@ -73,25 +73,15 @@ run_id = init_run_session()
 user_prompt = args.prompt
 
 # ---- PREVIOUS RUN CONTEXT BOOTSTRAP -----------------------------------------
-# - Locate previous run summary; extract PREV_RUN_JSON + gating_state
+# - Locate previous run summary; extract PREV_RUN_JSON
 # - Seed `messages` with previous context (if any) and current user prompt
 prev_summary_path = prev_run_summary_path(run_id)
 
 messages = []
-gating_state = {}
 
 if prev_summary_path and not args.reset:
-    prev_context, gating_state = prev_proposal(prev_summary_path)
+    prev_context, _ = prev_proposal(prev_summary_path)
     messages.append(types.Content(role="user", parts=[types.Part(text=prev_context)]))
-    # Normalize gating_state
-    proposals = gating_state.get("proposals") or []
-    gating_state["proposals"] = proposals
-    g_allowed = {
-        (p.get("file_path"), p.get("content_len"))
-        for p in proposals
-        if p.get("file_path") and isinstance(p.get("content_len"), int)
-    }
-    gating_state["allowed_apply_targets"] = g_allowed  # always a set
 
 messages.append(types.Content(role="user", parts=[types.Part(text=user_prompt)]))
 
@@ -108,12 +98,13 @@ available_functions = types.Tool(
 )
 
 # ---- GUARDS & TRACKERS INIT --------------------------------------------------
+# - Propose content variable
+proposed_content = None
+
 # - Throttle/gating guard (per-run)
 run_guard = {
     "block_apply_this_run": False,
     "block_propose_this_run": False,
-    "saw_propose_this_run": False,
-    "pending_apply_targets": None,
     "message": "",
     "next_action": "",
 }
@@ -128,7 +119,7 @@ run_save = {
 run_stats = {
     "tool_calls": 0,
     "text_only": False,
-    "propose_ok": 0,
+    "propose_ok": False,
     "apply_ok": 0,
     "read_ok": 0,        # get_file_content / get_files_info / run_python_file OK
     "transient_err": 0,  # UNAVAILABLE / RESOURCE_EXHAUSTED / timeouts
@@ -156,38 +147,40 @@ You can call:
 - get_files_info → list files
 - get_file_content → read files
 - run_python_file → execute files
-- propose_changes → preview edits (non-destructive)
-- apply_changes → confirm exactly the last proposal
+- propose_changes → preview edits (non-destructive). Saves the full proposed content into PREV_RUN_JSON.
+- apply_changes → apply the last approved proposal from PREV_RUN_JSON. Call with NO arguments.
 
 All paths are inside 'code_to_fix/'. Do NOT include that prefix.
 
 ## Behavior rules
-1. **Read-only tasks** (examine, inspect, analyze, review, search for bugs):
+1) Read-only tasks (examine, inspect, analyze, review, search for bugs)
    - Use ONLY get_files_info, get_file_content, and run_python_file.
-   - NEVER call propose_changes or apply_changes unless the user explicitly asks to modify code.
+   - Do NOT call propose_changes or apply_changes unless the user explicitly asks to modify code.
 
-2. **Proposing edits**  
-   - Use propose_changes only when you’ve identified a specific fix/refactor.
-   - After proposing, STOP — never call apply_changes in the same run.
+2) Proposing edits
+   - Call propose_changes only when you have a concrete fix/refactor for a specific file.
+   - Exactly ONE proposal per run. After a successful proposal, DO NOT call propose_changes again in the same run.
+   - Keep diffs minimal and scoped to the target file.
 
-3. **Applying edits**
-   - apply_changes is non-creative: it must match exactly the last propose_changes in PREV_RUN_JSON.
-   - If there is no valid proposal, DO NOT call apply_changes. Instead, call one propose_changes and STOP.
+3) Applying edits (new behavior)
+   - apply_changes is NON-CREATIVE and takes NO parameters.
+   - When called, the tool loads file_path and content from the last saved proposal in PREV_RUN_JSON and writes it.
+   - If there is no valid previous proposal, DO NOT try to fabricate arguments. Return a brief text explaining that a proposal is required or that no changes can be applied, and STOP.
 
-4. **Error handling**
-   - If any tool returns error.type = "apply_denied" → NEVER call apply_changes again in that run.
-     • reason = "no_previous_proposals" → make one propose_changes, then STOP.  
-     • reason = "missing_content_or_path" or "proposal_mismatch" → regenerate one valid propose_changes, then STOP.
+4) Error handling
+   - If any tool returns error.type = "throttled" or indicates a missing or invalid proposal:
+     • reason = "no_previous_proposals" → make exactly one propose_changes, then STOP.  
+     • reason = "proposal_missing_content_or_path" or "proposal_mismatch" → regenerate one valid propose_changes, then STOP.
+   - If propose_changes is blocked for this run, DO NOT attempt it again; return a brief textual summary of the intended change.
 
-5. **Scope & clarity**
-   - Only touch files directly relevant to the request.
-   - If the target file is unclear, ask one short clarifying question and STOP.
-   - Keep all diffs minimal.
-   - All files and directories are always inside the main code_to_fix/ folder by default.
+5) Scope & clarity
+   - Touch only files directly relevant to the user request.
+   - If the target file is unclear, ask ONE short clarifying question and STOP.
+   - All files and directories are inside 'code_to_fix/' by default.
 
-6. **Output**
-   - Give short, direct summaries of what was found or proposed.
-   - Do not explain every step or echo long plans.
+6) Output
+   - Provide short, direct summaries of what you found or proposed.
+   - Do not echo large code blocks unless strictly necessary for the fix.
 
 Default language = user’s last message.
 """
@@ -231,7 +224,7 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
         # Collect tool responses (to be appended as a single 'tool' message)
         function_response_list = []
 
-        # ---- HANDLER: FUNCTION CALL PARTS (THROTTLE & GATING) ------------------------
+        # ---- HANDLER: FUNCTION CALL PARTS THROTTLE ------------------------
         # Loop over each LLM response part (text + single/multi function calls)
         for part in response.candidates[0].content.parts:
             if part.function_call:
@@ -298,99 +291,6 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
                     continue
                 # ----------------------------------------------------------------------
 
-                # ---- GATING: apply_changes -------------------------------------------
-                if function_call_part.name == "apply_changes":
-                    args_fc = function_call_part.args or {}
-                    file_path = args_fc.get("file_path")
-                    content = args_fc.get("content")
-                    content_len = len(content) if isinstance(content, str) else None
-                    if run_guard["pending_apply_targets"] is None:
-                        allowed = gating_state.get("allowed_apply_targets")
-                        if not isinstance(allowed, set):
-                            allowed = set(allowed or [])
-                            gating_state["allowed_apply_targets"] = allowed
-                        run_guard["pending_apply_targets"] = set(allowed)
-                    else:
-                        allowed = run_guard["pending_apply_targets"]
-
-                    deny_reason = None
-
-                    if not allowed:
-                        # No proposals in previous run
-                        deny_reason = "no_previous_proposals"
-                        run_guard["block_apply_this_run"] = True
-                        if run_guard["saw_propose_this_run"]:
-                            run_guard["block_propose_this_run"] = True
-                            run_guard["message"] = (
-                                "You can't apply changes yet, return to the user a text response "
-                                "explaining the proposed changes."
-                            )
-                            run_guard["next_action"] = "return_text_explanation"
-                        else:
-                            run_guard["message"] = (
-                                "Generate exactly one propose_changes preview; do NOT call "
-                                "apply_changes in this run."
-                            )
-                            run_guard["next_action"] = "create_proposal"
-
-                    elif not file_path or content_len is None:
-                        # Missing mandatory inputs for a safe apply
-                        deny_reason = "missing_content_or_path"
-                        run_guard["block_propose_this_run"] = True
-                        run_guard["message"] = (
-                            "apply_changes requires both file_path and content matching a prior proposal."
-                        )
-                        run_guard["next_action"] = "retry_apply_with_matching_proposal"
-
-                    elif (file_path, content_len) not in allowed:
-                        # Proposal mismatch (path or length)
-                        deny_reason = "proposal_mismatch"
-                        run_guard["block_propose_this_run"] = True
-                        run_guard["message"] = (
-                            "The provided (file_path, content_len) does not match any proposal from the previous run."
-                        )
-                        run_guard["next_action"] = "retry_apply_with_matching_proposal"
-
-                    if deny_reason:
-                        # Do NOT call the tool; return a synthetic tool-response to guide the LLM
-                        error_payload = {
-                            "ok": False,
-                            "error": {
-                                "type": "apply_denied",
-                                "reason": deny_reason,
-                                "message": run_guard["message"],
-                                "next_action": run_guard["next_action"],
-                            },
-                        }
-                        if allowed:
-                            # Provide a small hint on what would be accepted (cap to 5 for brevity)
-                            sample = list(allowed)[:5]
-                            error_payload["error"]["expected_any_of"] = [
-                                {"file_path": fp, "content_len": cl} for (fp, cl) in sample
-                            ]
-
-                        if args.I_O:
-                            print(f"-> DENY apply_changes: {error_payload['error']}")
-
-                        function_response_list.append(
-                            types.Part.from_function_response(
-                                name="apply_changes",
-                                response=error_payload,
-                            )
-                        )
-                        run_stats["flow_error"] += 1
-                        if run_order["flow_first_idx"] is None:
-                            run_order["flow_first_idx"] = run_order["call_idx"]
-                        only_text_response = False
-                        run_save["flow_errors"].append({
-                            "idx": run_order["call_idx"],
-                            "type": "apply_denied",
-                            "reason": deny_reason,
-                            "message": run_guard["message"],
-                        })
-                        continue  # skip calling the real tool
-                # ----------------------------------------------------------------------
-
                 # ---- NORMALIZE ARGS & DISPATCH --------------------------------------
                 # Debug print (optional)
                 if args.I_O:
@@ -409,6 +309,32 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
 
                 # Attach run_id for downstream logging
                 function_call_part.args["run_id"] = run_id
+                if function_call_part.name == "apply_changes" and not args.reset:
+                    try:
+                        if prev_summary_path and os.path.exists(prev_summary_path):
+                            with open(prev_summary_path, "r", encoding="utf-8") as _f:
+                                _prev = json.load(_f) or {}
+                            _props = _prev.get("proposals") or []
+                            _p = next(
+                                (p for p in reversed(_props)
+                                if p.get("file_path") and (p.get("content") is not None)),
+                                None
+                            )
+                            if _p:
+                                _content = _p["content"]
+                                _file_path = _p["file_path"]
+                                function_call_part.args["file_path"] = _file_path
+                                function_call_part.args["content"] = _content
+                                # opzionale se hai già il digest nel proposal:
+                                if "digest" in _p:
+                                    function_call_part.args["digest"] = _p["digest"]
+                            else:
+                                raise RuntimeError(
+                                    "Nessun proposal con contenuto disponibile. Esegui prima propose_changes."
+                                )
+                    except Exception as _e:
+                        if args.verbose:
+                            print(f"[apply_changes override skipped] {type(_e).__name__}: {_e}")
 
                 # Dispatch selected tool
                 function_call_result = call_function(function_call_part, function_dict, verbose=args.verbose)
@@ -452,7 +378,18 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
                 name = function_call_part.name
                 if status_ok:
                     if name == "propose_changes":
-                        run_stats["propose_ok"] += 1
+                        run_stats["propose_ok"] = True
+                        # Extract proposed content from tool response
+                        proposed_content = function_response.get("content") if isinstance(function_response, dict) else None
+                        if proposed_content is None:
+                            proposed_content = function_call_part.args.get("content")
+                        run_guard["block_propose_this_run"] = True
+                        run_guard["message"] = "A proposal was already created in this run."
+                        run_guard["next_action"] = "return_text_explanation"
+                        # Block apply this run
+                        run_guard["block_apply_this_run"] = True  
+                        run_guard["message"] = "Apply is disabled in the same run as a proposal. Use apply in a new run." 
+                        run_guard["next_action"] = "return_text_explanation"  
                         # HARD recovery (useful propose/apply after first flow block)
                         if run_order["flow_first_idx"] is not None and run_order["call_idx"] > run_order["flow_first_idx"]:
                             run_order["recovered_after_flow"] = True
@@ -492,10 +429,6 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
                         res_str.startswith("Save proposed changes to")
                         or res_str.startswith("Save proposed creation of")
                     )
-                    if success:
-                        run_guard["saw_propose_this_run"] = True
-                        # Prevent immediate apply within the same turn unless explicitly allowed
-                        run_guard["block_apply_this_run"] = True
 
                 if function_call_part.name == "apply_changes":
                     # Detect success from tool result text
@@ -506,42 +439,13 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
                         res_str = str(function_response or "")
 
                     success = isinstance(res_str, str) and (
-                        res_str.startswith("Successfully wrote to")
-                        or res_str.startswith("dry run is set to true")
+                        res_str.startswith("Successfully wrote to") or
+                        res_str.startswith("dry run is set to true")
                     )
-                    if success:
-                        # Ensure pending set exists
-                        if "pending_apply_targets" not in run_guard or run_guard["pending_apply_targets"] is None:
-                            allowed = gating_state.get("allowed_apply_targets")
-                            if not isinstance(allowed, set):
-                                allowed = set(allowed or [])
-                                gating_state["allowed_apply_targets"] = allowed
-                            run_guard["pending_apply_targets"] = set(allowed)
-
-                        # Remove just-applied target from pending
-                        run_guard["pending_apply_targets"].discard((file_path, content_len))
-
-                        # Toggle guards based on remaining apply targets
-                        if run_guard["pending_apply_targets"]:
-                            run_guard["block_apply_this_run"] = False
-                            run_guard["block_propose_this_run"] = True
-                            run_guard["message"] = "Call apply_changes on the pending proposals"
-                            run_guard["next_action"] = "apply_pending_proposal"
-                        else:
-                            run_guard["block_apply_this_run"] = True
-                            run_guard["block_propose_this_run"] = False
-                            run_guard["message"] = "No more pending proposal present, can't call apply_changes"
-                            run_guard["next_action"] = "return_text_explanation"
-
-                        if args.I_O:
-                            print(
-                                f"-> APPLY success: applied {(file_path, content_len)}; "
-                                f"pending left={len(run_guard['pending_apply_targets'])}"
-                            )
-                    else:
-                        # Apply failed (FS/errors). Do not change guards here.
-                        if args.I_O:
-                            print("-> APPLY failed (no success signature): flags left unchanged")
+                    if success and args.I_O:
+                        print("-> APPLY success")
+                    elif args.I_O:
+                        print("-> APPLY not successful (no success signature)")
 
                 # ---- MARK NON-TEXT RESPONSE ------------------------------------------
                 # Found a function call → this is not a pure text response
@@ -624,29 +528,32 @@ if run_save["save_type"] == "Default":
     any_useful = (run_stats["propose_ok"] or run_stats["apply_ok"] or run_stats["read_ok"])
     only_transient = (run_stats["transient_err"] > 0 and not any_useful and run_stats["tool_calls"] == 0 and not run_stats["text_only"])
 
-    # 1) Discard_run — solo errori transitori per tutta la run
+    # 1) Discard_run — only transient errors in all of the run
     if only_transient:
         run_save["save_type"] = "Discard_run"
 
-    # 32) Recovered from error with soft function call
+    # 2) Recovered from error with soft function call
     elif (run_order["flow_first_idx"] is not None) and run_order.get("recovered_soft") and not (run_stats["propose_ok"] or run_stats["apply_ok"]):
         run_save["save_type"] = "Additional_run"
 
-    # 3) Error — errore di flusso LLM (es. apply chiamato male) e nessun esito utile
+    # 3) Error — llm flow error
     elif (run_order["flow_first_idx"] is not None) and (not run_order["recovered_after_flow"]) and not any_useful:
         run_save["save_type"] = "Error"
-        # prendi l’ultimo errore di flusso visto
         if run_save.get("flow_errors"):
             last = run_save["flow_errors"][-1]
             run_save["save_message"] = f"{last['type']}:{last['reason']} @call#{last['idx']} — {last['message']}"
         else:
             run_save["save_message"] = "Flow blocked and not recovered within the run."
 
-    # 4) Additional_run — nessuna tool call utile, ma testo o Q/A che vuoi “portare avanti”
+    # 4) Additional_run — no relevant tool call, add previous run
     elif run_stats["text_only"] and run_stats["tool_calls"] == 0:
         run_save["save_type"] = "Additional_run"
 
-    # 5) Default
+    # 5) Propose_changes called
+    elif run_stats["propose_ok"] == True:
+        run_save["save_type"] = "propose_run"
+
+    # 6) Default
     else:
         run_save["save_type"] = "Default"
 
@@ -720,6 +627,8 @@ match run_save["save_type"]:
         os.makedirs(dst_dir, exist_ok=True)
         with open(os.path.join(dst_dir, "run_summary.json"), "w", encoding="utf-8") as f:
             json.dump(merged, f, ensure_ascii=False, indent=2)
-
+    case "propose_run":
+        # Save current run
+        save_run_info(messages, run_id, proposed_content)
     case _:
         raise ValueError(f"run_save_type non valido: {run_save['save_type']!r}")

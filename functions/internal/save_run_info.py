@@ -1,6 +1,6 @@
 import os, json, time, re
 
-def save_run_info(messages, run_id):
+def save_run_info(messages, run_id, proposed_content=None):
     """
     Build a compact, structured ledger of the last run from `messages`
     and save two files under __ai_outputs__/run_<id>/:
@@ -123,6 +123,11 @@ def save_run_info(messages, run_id):
                 "content_len": (rec.get("extras") or {}).get("content_len"),
                 "brief": rec.get("brief"),
             })
+            # if provided, persist full proposed content (and its len)
+            if proposed_content is not None:
+                p["content"] = proposed_content
+                p["content_len"] = len(proposed_content)
+            proposals.append(p)
             pid += 1
 
     summary = {
