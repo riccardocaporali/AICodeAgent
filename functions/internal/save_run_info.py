@@ -1,4 +1,4 @@
-import os, json, time, re
+import os, json, time, re, hashlib
 
 def save_run_info(messages, run_id, proposed_content=None):
     """
@@ -15,6 +15,11 @@ def save_run_info(messages, run_id, proposed_content=None):
         return s[:n] + ("…" if len(s) > n else "")
 
     def parse_status(res):
+        # dict payloads from tools/deny
+        if isinstance(res, dict):
+            if res.get("ok") is False:
+                return "ERROR"
+            return "OK"
         if not isinstance(res, str):
             return "OK"
         if res.startswith("Error:"):
@@ -23,27 +28,25 @@ def save_run_info(messages, run_id, proposed_content=None):
             return "TIMEOUT"
         return "OK"
 
-    calls = []
-    pending = []
+    calls, pending = [], []
     last_text = ""
 
-    # Extract the current run's user prompt (skip any PREV_RUN_JSON context message)
-    user_prompt = ""
-    _last_any_user = ""
+    # --- extract last non-PREV_RUN_JSON user prompt ---
+    user_prompt, _last_any_user = "", ""
     for msg in (messages or []):
         if getattr(msg, "role", None) == "user":
             for p in (getattr(msg, "parts", []) or []):
                 t = getattr(p, "text", None)
                 if not t or not t.strip():
                     continue
-                t_stripped = t.strip()
-                _last_any_user = t_stripped
-                if not t_stripped.startswith("PREV_RUN_JSON"):
-                    user_prompt = t_stripped  # keep last non-PREV_RUN_JSON user prompt
-
+                t = t.strip()
+                _last_any_user = t
+                if not t.startswith("PREV_RUN_JSON"):
+                    user_prompt = t
     if not user_prompt:
-        user_prompt = _last_any_user  # fallback to last user text if all were PREV_RUN_JSON
+        user_prompt = _last_any_user
 
+    # --- walk message stream ---
     for msg in (messages or []):
         role = getattr(msg, "role", None)
         parts = getattr(msg, "parts", []) or []
@@ -52,8 +55,7 @@ def save_run_info(messages, run_id, proposed_content=None):
             for p in parts:
                 t = getattr(p, "text", None)
                 if t and t.strip():
-                    last_text = t  # keep last assistant text
-
+                    last_text = t
                 fc = getattr(p, "function_call", None)
                 if fc:
                     name = getattr(fc, "name", None)
@@ -82,8 +84,25 @@ def save_run_info(messages, run_id, proposed_content=None):
 
                 rec = pending.pop(0) if pending else {"t": name, "args": {}}
                 rec["t"] = name
-                rec["status"] = parse_status(result if isinstance(result, str) else "")
+                rec["status"] = parse_status(resp if isinstance(resp, dict) else result)
 
+                a = rec.setdefault("args", {})
+
+                # ---- prefer effective args returned by the tool (but NOT for apply_changes) ----
+                if name != "apply_changes":
+                    eff_file = None
+                    eff_len = None
+                    if isinstance(resp, dict):
+                        eff_file = resp.get("file_path") or ((resp.get("args") or {}).get("file_path") if isinstance(resp.get("args"), dict) else None)
+                        c = resp.get("content")
+                        if isinstance(c, str):
+                            eff_len = len(c)
+                    if eff_file:
+                        a["file_path"] = eff_file
+                    if eff_len is not None:
+                        a["content_len"] = eff_len
+
+                # ---- extras summary ----
                 extras = {}
                 if name == "get_files_info" and isinstance(result, str):
                     lines = [ln for ln in result.splitlines() if ln.startswith("- ")]
@@ -102,32 +121,38 @@ def save_run_info(messages, run_id, proposed_content=None):
                     extras["stdout_len"] = len(stdout)
                     extras["stderr_len"] = len(stderr)
                 elif name in ("propose_changes", "apply_changes"):
-                    a = rec.get("args", {})
                     extras["target"] = a.get("file_path")
                     if "content_len" in a:
                         extras["content_len"] = a["content_len"]
+
+                if isinstance(resp, dict) and resp.get("ok") is False:
+                    err = resp.get("error") or {}
+                    extras["error"] = {
+                        "type": err.get("type"),
+                        "reason": err.get("reason"),
+                        "message": err.get("message"),
+                    }
 
                 rec["brief"] = brief_text(str(result), 160) if isinstance(result, str) else None
                 rec["extras"] = extras
                 calls.append(rec)
 
-    # --- Extract proposals for next-run gating ---
-    proposals = []
-    pid = 1
+    # --- proposals for next run ---
+    proposals, pid = [], 1
     for rec in calls:
         if rec.get("t") == "propose_changes" and rec.get("status") == "OK":
-            proposals.append({
+            proposal = {
                 "id": pid,
                 "wd": rec.get("args", {}).get("wd"),
                 "file_path": (rec.get("extras") or {}).get("target"),
                 "content_len": (rec.get("extras") or {}).get("content_len"),
                 "brief": rec.get("brief"),
-            })
-            # if provided, persist full proposed content (and its len)
-            if proposed_content is not None:
-                p["content"] = proposed_content
-                p["content_len"] = len(proposed_content)
-            proposals.append(p)
+            }
+            if isinstance(proposed_content, str):
+                proposal["content"] = proposed_content
+                proposal["content_len"] = len(proposed_content)
+                proposal["digest"] = hashlib.sha256(proposed_content.encode("utf-8")).hexdigest()
+            proposals.append(proposal)
             pid += 1
 
     summary = {
@@ -138,11 +163,9 @@ def save_run_info(messages, run_id, proposed_content=None):
             "user_prompt_len": len(user_prompt),
             "user_prompt_brief": brief_text(user_prompt, 160),
         },
-        "calls": calls[-10:],  # keep last N calls
-        "proposals": proposals,  # <--- added for gating in next run
-        "assistant": {
-            "last_text": brief_text(last_text, 2000),
-        },
+        "calls": calls[-10:],
+        "proposals": proposals,
+        "assistant": {"last_text": brief_text(last_text, 2000)},
     }
 
     json_path = os.path.join(base_dir, "run_summary.json")
