@@ -1,12 +1,18 @@
 import os, json, time, re, hashlib
 
-def save_run_info(messages, run_id, proposed_content=None):
+def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
     """
     Build a compact, structured ledger of the last run from `messages`
     and save two files under __ai_outputs__/run_<id>/:
       - run_summary.json  (structured: header, calls, proposals, assistant.last_text)
       - llm_message       (plain last assistant text)
     """
+    # Compat: se il terzo argomento è in realtà extra_data (dict con wd/fp/ct), riallinea
+    if extra_data is None and isinstance(proposed_content, dict) and (
+        {"wd", "fp", "ct"} & set(proposed_content.keys())
+    ):
+        extra_data, proposed_content = proposed_content, None
+
     base_dir = os.path.abspath(os.path.join("__ai_outputs__", run_id))
     os.makedirs(base_dir, exist_ok=True)
 
@@ -88,21 +94,7 @@ def save_run_info(messages, run_id, proposed_content=None):
 
                 a = rec.setdefault("args", {})
 
-                # ---- prefer effective args returned by the tool (but NOT for apply_changes) ----
-                if name != "apply_changes":
-                    eff_file = None
-                    eff_len = None
-                    if isinstance(resp, dict):
-                        eff_file = resp.get("file_path") or ((resp.get("args") or {}).get("file_path") if isinstance(resp.get("args"), dict) else None)
-                        c = resp.get("content")
-                        if isinstance(c, str):
-                            eff_len = len(c)
-                    if eff_file:
-                        a["file_path"] = eff_file
-                    if eff_len is not None:
-                        a["content_len"] = eff_len
-
-                # ---- extras summary ----
+                # ---- extras summary (minimale) ----
                 extras = {}
                 if name == "get_files_info" and isinstance(result, str):
                     lines = [ln for ln in result.splitlines() if ln.startswith("- ")]
@@ -120,10 +112,32 @@ def save_run_info(messages, run_id, proposed_content=None):
                     stderr = (me.group(1) if me else "").strip()
                     extras["stdout_len"] = len(stdout)
                     extras["stderr_len"] = len(stderr)
-                elif name in ("propose_changes", "apply_changes"):
-                    extras["target"] = a.get("file_path")
-                    if "content_len" in a:
-                        extras["content_len"] = a["content_len"]
+
+                # --- apply_changes: registra i feed dai dati iniettati (extra_data) ---
+                if name == "apply_changes" and isinstance(extra_data, dict):
+                    feed_wd = extra_data.get("wd")
+                    feed_fp = extra_data.get("fp")
+                    feed_ct = extra_data.get("ct")
+
+                    # Oggetto compatto nel record
+                    feed = {}
+                    if feed_wd is not None:
+                        feed["wd"] = feed_wd
+                    if feed_fp is not None:
+                        feed["file_path"] = feed_fp
+                    if feed_ct is not None:
+                        try:
+                            feed["content_len"] = len(feed_ct)
+                        except Exception:
+                            pass
+                    if feed:
+                        rec["feed"] = feed
+
+                    # Aiuta il riepilogo veloce
+                    if feed_fp and "target" not in extras:
+                        extras["target"] = feed_fp
+                    if "content_len" not in extras and "content_len" in feed:
+                        extras["content_len"] = feed["content_len"]
 
                 if isinstance(resp, dict) and resp.get("ok") is False:
                     err = resp.get("error") or {}

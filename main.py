@@ -274,15 +274,18 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
                     fp = last_prop.get("file_path")
                     ct = last_prop.get("content")
                     wd = (last_prop.get("wd") or last_prop.get("working_directory") or "").strip("/")
+                    wd = os.path.join(base_dir, wd) if wd else base_dir
 
                     if not fp or ct is None:
                         _deny("apply_changes","apply_denied","Previous proposal missing file_path or content.")
                         only_text_response = False; stop_after_tool = True; break
-
+                    
                     # override working_directory using wd from proposal; file_path stays as-is
-                    function_call_part.args["working_directory"] = os.path.join(base_dir, wd) if wd else base_dir
+                    function_call_part.args["working_directory"] = wd
                     function_call_part.args["file_path"] = fp
                     function_call_part.args["content"] = ct
+                    extra_data = {"wd": wd, "fp": fp, "ct": ct}
+
 
                     if args.verbose:
                         print(f"[apply_changes inject] wd={wd!r} file_path={fp!r}, bytes={len(ct)}")
@@ -439,7 +442,7 @@ if run_save["save_type"] == "Default":
 match run_save["save_type"]:
     case "Default":
         # Save current run summary
-        save_run_info(messages, run_id)
+        save_run_info(messages, run_id, extra_data)
 
     case "Discard_run":
         # If present copy previous run summary 
@@ -475,7 +478,7 @@ match run_save["save_type"]:
 
     case "Additional_run":
         # Save current run
-        cur_path = save_run_info(messages, run_id)
+        cur_path = save_run_info(messages, run_id, extra_data)
 
         # Load previous run
         base_prev = {}
@@ -507,6 +510,6 @@ match run_save["save_type"]:
             json.dump(merged, f, ensure_ascii=False, indent=2)
     case "propose_run":
         # Save current run
-        save_run_info(messages, run_id, proposed_content)
+        save_run_info(messages, run_id, proposed_content, extra_data)
     case _:
         raise ValueError(f"run_save_type non valido: {run_save['save_type']!r}")
