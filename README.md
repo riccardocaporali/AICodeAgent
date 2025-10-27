@@ -33,7 +33,7 @@ AiCodeAgent/
 │   ├── call_function.py                  # Dispatcher for function execution
 │   │
 │   ├── llm_calls/                        # Tools callable by the LLM (function-calling)
-│   │   ├── apply_changes.py
+│   │   ├── conclude_edit.py
 │   │   ├── get_file_content.py
 │   │   ├── get_files_info.py
 │   │   ├── propose_changes.py
@@ -111,7 +111,7 @@ Proposals are saved in `run_summary.json` and reused in the next run for consist
 
 | Mechanism | Purpose |
 |----------|---------|
-| Throttle | Prevents multiple `apply_changes` or `propose_changes` calls in the same run. |
+| Throttle | Prevents multiple `conclude_edit` or `propose_changes` calls in the same run. |
 | Gating   | Allows applying only edits that were explicitly proposed in a previous run. |
 | Recovery | If the model flow fails, the run is saved as `Error` or `Additional_run` and can safely resume. |
 

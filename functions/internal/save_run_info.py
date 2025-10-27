@@ -113,8 +113,8 @@ def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
                     extras["stdout_len"] = len(stdout)
                     extras["stderr_len"] = len(stderr)
 
-                # --- apply_changes: registra i feed dai dati iniettati (extra_data) ---
-                if name == "apply_changes" and isinstance(extra_data, dict):
+                # --- conclude_edit: registra i feed dai dati iniettati (extra_data) ---
+                if name == "conclude_edit" and isinstance(extra_data, dict):
                     feed_wd = extra_data.get("wd")
                     feed_fp = extra_data.get("fp")
                     feed_ct = extra_data.get("ct")

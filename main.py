@@ -76,6 +76,8 @@ user_prompt = args.prompt
 prev_summary_path = prev_run_summary_path(run_id)
 messages = []
 last_prop = None
+# Variable to save data fed at conclude_edit
+extra_data =None
 
 if prev_summary_path and not args.reset:
     prev_context, last_prop = prev_proposal(prev_summary_path)  # last_prop: file_path, content, run_id, wd
@@ -95,9 +97,9 @@ fn_decls = [
     schemas.schema_run_python_file,
     schemas.schema_propose_changes,
 ]
-# Register apply_changes only if previous proposal is present
+# Register conclude_edit only if previous proposal is present
 if has_prev_proposal:
-    fn_decls.append(schemas.schema_apply_changes)
+    fn_decls.append(schemas.schema_conclude_edit)
 
 available_functions = types.Tool(function_declarations=fn_decls)
 
@@ -121,7 +123,6 @@ run_stats = {
 # - Define model id, system instruction, and tool config
 model = "gemini-2.0-flash-001"
 
-# System prompt
 system_prompt = """
 You are an AI agent for refactoring and debugging code.
 
@@ -131,14 +132,15 @@ You can call:
 - get_file_content → read files
 - run_python_file → execute files
 - propose_changes → preview edits (non-destructive). Saves the full proposed content into PREV_RUN_JSON.
-- apply_changes → apply the last approved proposal from PREV_RUN_JSON. Call with NO arguments.
+- conclude_edit → apply the last approved proposal from PREV_RUN_JSON. Call with NO arguments.
 
 All paths are inside 'code_to_fix/'. Do NOT include that prefix.
 
 ## Behavior rules
 1) Read-only tasks (analyze, inspect, review, find bugs)
    - Use ONLY get_files_info, get_file_content, and run_python_file.
-   - NEVER call propose_changes or apply_changes unless the user explicitly requests a modification.
+   - NEVER call propose_changes or conclude_edit unless the user explicitly requests a modification.
+   - Never ask user for file info, use the functions
 
 2) Proposing edits
    - Use propose_changes only when you have a specific fix for a file.
@@ -146,14 +148,14 @@ All paths are inside 'code_to_fix/'. Do NOT include that prefix.
    - Keep diffs minimal and limited to the target file.
 
 3) Applying edits
-   - apply_changes is NON-CREATIVE and takes NO arguments.
+   - conclude_edit is NON-CREATIVE and takes NO arguments.
    - It is available ONLY if a previous proposal exists in PREV_RUN_JSON.
-   - NEVER call apply_changes in the same run where you made a proposal.
+   - NEVER call conclude_edit in the same run where you made a proposal.
    - If no valid proposal exists, do NOT fabricate arguments. Just return a short explanation.
 
 4) Error handling
    - If a tool fails due to missing proposal, respond with a short textual message explaining what is needed.
-   - Do NOT attempt multiple propose_changes or apply_changes in one run.
+   - Do NOT attempt multiple propose_changes or conclude_edit in one run.
 
 5) Scope & clarity
    - Edit only files directly relevant to the user request.
@@ -165,6 +167,7 @@ All paths are inside 'code_to_fix/'. Do NOT include that prefix.
 
 Default language = user’s last message.
 """
+
 config = types.GenerateContentConfig(
     tools=[available_functions],
     system_instruction=system_prompt
@@ -236,15 +239,15 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
                     break
 
                 # 2) Deny apply in same run as a proposal (enforce two-step)
-                if name == "apply_changes" and run_stats.get("propose_ok", 0) >= 1:
-                    _deny("apply_changes", "apply_denied", "same_run_apply_not_allowed")
+                if name == "conclude_edit" and run_stats.get("propose_ok", 0) >= 1:
+                    _deny("conclude_edit", "apply_denied", "same_run_apply_not_allowed")
                     only_text_response = False
                     stop_after_tool = True
                     break
 
                 # 3) Deny repeated apply in same run
-                if name == "apply_changes" and run_stats.get("apply_ok", 0) >= 1:
-                    _deny("apply_changes", "apply_denied", "duplicate_apply_this_run")
+                if name == "conclude_edit" and run_stats.get("apply_ok", 0) >= 1:
+                    _deny("conclude_edit", "apply_denied", "duplicate_apply_this_run")
                     only_text_response = False
                     stop_after_tool = True
                     break
@@ -265,10 +268,10 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
                 # attach run_id
                 function_call_part.args["run_id"] = run_id
 
-                # inject deterministic inputs for apply_changes from last_prop (no file I/O here)
-                if function_call_part.name == "apply_changes" and not args.reset:
+                # inject deterministic inputs for conclude_edit from last_prop (no file I/O here)
+                if function_call_part.name == "conclude_edit" and not args.reset:
                     if not last_prop:
-                        _deny("apply_changes","apply_denied","no_previous_proposals")
+                        _deny("conclude_edit","apply_denied","no_previous_proposals")
                         only_text_response = False; stop_after_tool = True; break
 
                     fp = last_prop.get("file_path")
@@ -277,7 +280,7 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
                     wd = os.path.join(base_dir, wd) if wd else base_dir
 
                     if not fp or ct is None:
-                        _deny("apply_changes","apply_denied","Previous proposal missing file_path or content.")
+                        _deny("conclude_edit","apply_denied","Previous proposal missing file_path or content.")
                         only_text_response = False; stop_after_tool = True; break
                     
                     # override working_directory using wd from proposal; file_path stays as-is
@@ -288,7 +291,7 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
 
 
                     if args.verbose:
-                        print(f"[apply_changes inject] wd={wd!r} file_path={fp!r}, bytes={len(ct)}")
+                        print(f"[conclude_edit inject] wd={wd!r} file_path={fp!r}, bytes={len(ct)}")
 
                 # dispatch
                 function_call_result = call_function(function_call_part, function_dict, verbose=args.verbose)
@@ -336,7 +339,7 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
                             proposed_content = function_response.get("content")
                         if proposed_content is None:
                             proposed_content = function_call_part.args.get("content")
-                    elif name == "apply_changes":
+                    elif name == "conclude_edit":
                         run_stats["apply_ok"] += 1
                     elif name in ("get_file_content", "get_files_info", "run_python_file"):
                         run_stats["read_ok"] += 1
