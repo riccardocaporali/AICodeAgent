@@ -5,9 +5,9 @@ from functions.internal.get_secure_path import get_secure_path
 from functions.internal.save_summary_entry import save_summary_entry
 from functions.internal.save_logs import save_logs
 
-def apply_changes(working_directory, file_path, content, run_id, function_args=None, dry_run=False):
+def conclude_edit(working_directory, file_path, content, run_id, function_args=None, dry_run=False):
     # Function name
-    function_name = "apply_changes"
+    function_name = "conclude_edit"
     # Define summary directory
     base_dir = os.path.abspath(os.path.join("__ai_outputs__", run_id))
     # Get the file name 

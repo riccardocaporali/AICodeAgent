@@ -9,7 +9,7 @@ from functions.internal.clear_output_dirs import clear_output_dirs
 from functions.llm_calls.get_file_content import get_file_content
 from functions.llm_calls.get_files_info import get_files_info
 from functions.llm_calls.propose_changes import  propose_changes
-from functions.llm_calls.apply_changes import  apply_changes
+from functions.llm_calls.conclude_edit import  conclude_edit
 
 # === INTRODUCTION ===
 # This is  a general test to execute of the llm function in sequence, the aim is to see if relative 
@@ -135,8 +135,8 @@ res4 = propose_changes(
 )
 print_test_result(4, "propose_changes on hello.txt", res4)
 
-# 5) === apply_changes ===
-res5 = apply_changes(
+# 5) === conclude_edit ===
+res5 = conclude_edit(
     working_directory=TEST_DIR,
     file_path="hello.txt",
     content=proposed_content,
@@ -144,7 +144,7 @@ res5 = apply_changes(
     run_id=run_id,
     function_args={"working_directory": TEST_DIR, "file_path": "hello.txt"},
 )
-print_test_result(5, "apply_changes on hello.txt", res5)
+print_test_result(5, "conclude_edit on hello.txt", res5)
 
 # Optional clear
 if "--clear" in sys.argv:

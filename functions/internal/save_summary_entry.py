@@ -13,7 +13,7 @@ def save_summary_entry(summary_dir, function_name, function_args, log_line=None,
     bullet = "   - " + clean.replace("\n", "\n     ") + "\n"
 
     # Save summary for write file functions
-    if function_name in ("propose_changes", "apply_changes"):
+    if function_name in ("propose_changes", "conclude_edit"):
         if log_line is not None:
             # Convert diff lines to a human-readable format
             readable_diff = make_human_readable_diff(diff_lines) if diff_lines else ""
