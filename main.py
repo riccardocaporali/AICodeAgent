@@ -15,7 +15,6 @@ from functions.call_function import call_function
 from functions.internal.init_run_session import init_run_session
 from functions.internal.save_run_info import save_run_info
 from functions.internal.prev_proposal import prev_proposal
-from functions.internal.start_ui import start_ui
 from functions.internal.prev_run_summary_path import prev_run_summary_path
 
 # ---- ENV & CLIENT SETUP ------------------------------------------------------
@@ -385,7 +384,7 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
                 (directory|folder|path|root|cartella|percorso|dir)
             """, re.I | re.X)
 
-            if PAT_ASK_DIR.search(txt) and run_stats["file_info_blox"] >= 1:
+            if PAT_ASK_DIR.search(txt) and run_stats["file_info_blox"] == 0:
                 messages.append(types.Content(
                     role="user",
                     parts=[types.Part(text="The project root is 'code_to_fix/'. Use get_files_info on '.' or on the mentioned subfolder.")]
@@ -536,7 +535,3 @@ match run_save["save_type"]:
         save_run_info(messages, run_id, proposed_content, extra_data)
     case _:
         raise ValueError(f"run_save_type non valido: {run_save['save_type']!r}")
-
-# Start UI for proposal analysis
-
-#start_ui(run_stats, last_prop, run_id, headless=False)
