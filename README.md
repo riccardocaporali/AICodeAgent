@@ -124,13 +124,6 @@ Proposals are saved in `run_summary.json` and reused in the next run for consist
 | Error           | Flow error in the model logic.                           |
 | Discard_run     | Transient errors only, nothing to save.                  |
 
-## Testing
-
-Run all tests with:
-```bash
-pytest -v
-```
-
 ## License
 
 Open-source project released under the MIT License.  
