@@ -155,16 +155,32 @@ def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
     proposals, pid = [], 1
     for rec in calls:
         if rec.get("t") == "propose_changes" and rec.get("status") == "OK":
+            args = rec.get("args", {}) or {}
+            brief = rec.get("brief", "") or ""
+
+            # file_path: prima dagli args, poi fallback dal brief
+            fp = args.get("file_path")
+            if not fp:
+                m = re.search(r'Save proposed changes to "([^"]+)"', brief)
+                fp = m.group(1) if m else None
+
+            # content_len: da proposed_content, altrimenti dagli args/extras
+            if isinstance(proposed_content, str):
+                clen = len(proposed_content)
+            else:
+                clen = args.get("content_len")
+                if clen is None:
+                    clen = (rec.get("extras") or {}).get("content_len")
+
             proposal = {
                 "id": pid,
-                "wd": rec.get("args", {}).get("wd"),
-                "file_path": (rec.get("extras") or {}).get("target"),
-                "content_len": (rec.get("extras") or {}).get("content_len"),
+                "wd": args.get("wd"),
+                "file_path": fp,
+                "content_len": clen,
                 "brief": rec.get("brief"),
             }
             if isinstance(proposed_content, str):
                 proposal["content"] = proposed_content
-                proposal["content_len"] = len(proposed_content)
                 proposal["digest"] = hashlib.sha256(proposed_content.encode("utf-8")).hexdigest()
             proposals.append(proposal)
             pid += 1

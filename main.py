@@ -15,6 +15,7 @@ from functions.call_function import call_function
 from functions.internal.init_run_session import init_run_session
 from functions.internal.save_run_info import save_run_info
 from functions.internal.prev_proposal import prev_proposal
+from functions.internal.start_ui import start_ui
 from functions.internal.prev_run_summary_path import prev_run_summary_path
 
 # ---- ENV & CLIENT SETUP ------------------------------------------------------
@@ -114,6 +115,7 @@ run_stats = {
     "tool_calls": 0,
     "text_only": False,
     "propose_ok": False,
+    "file_info_blox": 0,
     "apply_ok": 0,
     "read_ok": 0,
     "transient_err": 0,
@@ -132,26 +134,35 @@ You can call:
 - get_file_content → read files
 - run_python_file → execute files
 - propose_changes → preview edits (non-destructive). Saves the full proposed content into PREV_RUN_JSON.
+
+### RESTRICTED TOOL — USE ONLY IN THE SPECIFIC CASE
 - conclude_edit → apply the last approved proposal from PREV_RUN_JSON. Call with NO arguments.
+  - AVAILABLE ONLY IF there is an approved proposal stored in PREV_RUN_JSON from a previous run.
+  - NEVER in the same run where you called propose_changes.
+  - NEVER without explicit user intent to apply.
+  - NON-CREATIVE. Takes NO arguments.
 
 All paths are inside 'code_to_fix/'. Do NOT include that prefix.
 
 ## Behavior rules
 1) Read-only tasks (analyze, inspect, review, find bugs)
    - Use ONLY get_files_info, get_file_content, and run_python_file.
+   - NEVER ask the user for the file list, file names, or directory structure.
+   - ALWAYS use get_files_info to discover files and directories automatically.
    - NEVER call propose_changes or conclude_edit unless the user explicitly requests a modification.
-   - Never ask user for file info, use the functions
 
 2) Proposing edits
-   - Use propose_changes only when you have a specific fix for a file.
+   - Use propose_changes only when you have a specific fix for a single file.
    - Exactly ONE proposal per run. After a successful proposal, STOP and wait for the next run.
    - Keep diffs minimal and limited to the target file.
+   - If you used propose_changes in this run, you MUST NOT call conclude_edit. STOP.
 
 3) Applying edits
    - conclude_edit is NON-CREATIVE and takes NO arguments.
-   - It is available ONLY if a previous proposal exists in PREV_RUN_JSON.
-   - NEVER call conclude_edit in the same run where you made a proposal.
-   - If no valid proposal exists, do NOT fabricate arguments. Just return a short explanation.
+   - It is AVAILABLE ONLY IF a valid, approved proposal exists in PREV_RUN_JSON from a previous run.
+   - NEVER call conclude_edit in the same run where you made a proposal. NEVER.
+   - NEVER call conclude_edit unless the user has asked to apply. NEVER.
+   - If no valid proposal exists, do NOT fabricate anything. Return a short explanation.
 
 4) Error handling
    - If a tool fails due to missing proposal, respond with a short textual message explaining what is needed.
@@ -366,11 +377,20 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
         if only_text_response:
             txt = (response.text or "").lower()
             # If model is asking for target directory
-            if re.search(r'(specify|which|what|where).{0,40}directory', txt):
+            PAT_ASK_DIR = re.compile(r"""
+                (specify|which|what|where|indicate|choose|select|target|root
+                |working\s*directory|project\s*root|path|folder|dir|tree|structure
+                |cartella|percorso|quale|dove)
+                .{0,60}
+                (directory|folder|path|root|cartella|percorso|dir)
+            """, re.I | re.X)
+
+            if PAT_ASK_DIR.search(txt) and run_stats["file_info_blox"] >= 1:
                 messages.append(types.Content(
                     role="user",
                     parts=[types.Part(text="The project root is 'code_to_fix/'. Use get_files_info on '.' or on the mentioned subfolder.")]
                 ))
+                run_stats["file_info_blox"] += 1
                 continue  # Start a new cycle
             run_stats["text_only"] = True
             print(response.text or "")
@@ -516,3 +536,7 @@ match run_save["save_type"]:
         save_run_info(messages, run_id, proposed_content, extra_data)
     case _:
         raise ValueError(f"run_save_type non valido: {run_save['save_type']!r}")
+
+# Start UI for proposal analysis
+
+#start_ui(run_stats, last_prop, run_id, headless=False)
