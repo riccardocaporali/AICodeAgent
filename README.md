@@ -23,7 +23,7 @@ Each session generates:
 ---
 
 ## System Architecture
-
+```text
 AiCodeAgent/
 │
 ├── main.py                               # Main LLM loop (prompt, throttling/gating, summary)
@@ -60,8 +60,6 @@ AiCodeAgent/
 ├── ai_outputs/                           # Structured outputs (logs, backups, summaries, diffs)
 │
 └── tests/                                # Pytest-based test suite
-
----
 
 ## Setup
 
