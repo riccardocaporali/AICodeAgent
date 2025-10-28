@@ -61,23 +61,27 @@ AiCodeAgent/
 │
 └── tests/                                # Pytest-based test suite
 
+```
 ## Setup
 
 1. **Clone the repository**
-   ```bash
-   git clone https://github.com/riccardocaporali/code_fixer.git
-   cd AiCodeAgent
-   ```
+
+    ```bash
+    git clone https://github.com/riccardocaporali/code_fixer.git
+    cd AiCodeAgent
+    ```
 
 2. **Create a .env file with your Gemini API key**
-   ```bash
-   GEMINI_API_KEY=your_api_key_here
-   ```
+
+    ```bash
+    GEMINI_API_KEY=your_api_key_here
+    ```
 
 3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+
+    ```bash
+    pip install -r requirements.txt
+    ```
 
 4. **Run a quick test**
    ```bash
@@ -104,6 +108,7 @@ python main.py "Apply the proposed fix" --I_O
 ```
 
 Proposals are saved in `run_summary.json` and reused in the next run for consistent apply validation.
+
 
 ## Safety Mechanisms
 
