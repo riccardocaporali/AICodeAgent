@@ -124,8 +124,10 @@ Proposals are saved in `run_summary.json` and reused in the next run for consist
 |-----------------|----------------------------------------------------------|
 | Default         | Valid run, fully saved.                                  |
 | Additional_run  | Continuation or text-only run.                           |
+| Propose_run     | Save proposal changes to the code for next run           |
 | Error           | Flow error in the model logic.                           |
 | Discard_run     | Transient errors only, nothing to save.                  |
+
 
 ## License
 
