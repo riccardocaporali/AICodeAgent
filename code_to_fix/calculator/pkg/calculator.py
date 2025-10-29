@@ -6,22 +6,56 @@ class Calculator:
             "+": lambda a, b: a + b,
             "-": lambda a, b: a - b,
             "*": lambda a, b: a * b,
-            "/": lambda a, b: a / b
+            "/": lambda a, b: a / b,
+        }
+        self.precedence = {
+            "+": 3,
+            "-": 1,
+            "*": 2,
+            "/": 2,
         }
 
     def evaluate(self, expression):
-        try:
-            num1, operator, num2 = expression.split()
-            num1 = float(num1)
-            num2 = float(num2)
-            if operator == "/" and num2 == 0:
-                return "Division by zero error!"
-            operation = self.operators.get(operator)
-            if operation:
-                return operation(num1, num2)
+        if not expression or expression.isspace():
+            return None
+        tokens = expression.strip().split()
+        return self._evaluate_infix(tokens)
+
+    def _evaluate_infix(self, tokens):
+        values = []
+        operators = []
+
+        for token in tokens:
+            if token in self.operators:
+                while (
+                    operators
+                    and operators[-1] in self.operators
+                    and self.precedence[operators[-1]] >= self.precedence[token]
+                ):
+                    self._apply_operator(operators, values)
+                operators.append(token)
             else:
-                return "Invalid operator!"
-        except ValueError:
-            return "Invalid input!"
-        except Exception as e:
-            return f"An unexpected error occurred: {e}"
+                try:
+                    values.append(float(token))
+                except ValueError:
+                    raise ValueError(f"invalid token: {token}")
+
+        while operators:
+            self._apply_operator(operators, values)
+
+        if len(values) != 1:
+            raise ValueError("invalid expression")
+
+        return values[0]
+
+    def _apply_operator(self, operators, values):
+        if not operators:
+            return
+
+        operator = operators.pop()
+        if len(values) < 2:
+            raise ValueError(f"not enough operands for operator {operator}")
+
+        b = values.pop()
+        a = values.pop()
+        values.append(self.operators[operator](a, b))

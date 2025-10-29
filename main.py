@@ -17,6 +17,15 @@ from functions.internal.save_run_info import save_run_info
 from functions.internal.prev_proposal import prev_proposal
 from functions.internal.prev_run_summary_path import prev_run_summary_path
 
+# ---- USEFULL FUNCTIONS ------------------------------------------------------
+def _emit(_name, kind, reason, steps):
+    payload = {"ok": False, "type": kind, "reason": reason, "next_steps": steps}
+    if args.I_O:
+        print(f"-> {_name} denied: {payload['error']}")
+    function_response_list.append(
+        types.Part.from_function_response(name=_name, response=payload)
+    )
+
 # ---- ENV & CLIENT SETUP ------------------------------------------------------
 # - Load environment variables from .env
 # - Validate GEMINI_API_KEY (fail fast, write to stderr) and init GenAI client
@@ -113,9 +122,9 @@ run_save = {
 run_stats = {
     "tool_calls": 0,
     "text_only": False,
-    "propose_ok": False,
-    "file_info_blox": 0,
+    "propose_ok": 0,
     "apply_ok": 0,
+    "file_info_blox": 0,
     "read_ok": 0,
     "transient_err": 0,
 }
@@ -232,32 +241,32 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
                 )
                 name = function_call_part.name
 
-               # ---- PRE-CHECK ------------------
-                def _deny(_name, err_type, reason):
-                    payload = {"ok": False, "error": {"type": err_type, "reason": reason}}
-                    if args.I_O:
-                        print(f"-> {_name} denied: {payload['error']}")
-                    function_response_list.append(
-                        types.Part.from_function_response(name=_name, response=payload)
-                    )
-
-                # 1) One proposal max per run
-                if name == "propose_changes" and run_stats.get("propose_ok", 0) >= 1:
-                    _deny("propose_changes", "throttled", "duplicate_proposal_this_run")
+                # ---- PRE-CHECK ------------------
+                # 1) Only text response after a proposal
+                if run_stats.get("propose_ok", 0) >= 1:
+                    _emit("propose_changes", "throttled", "duplicate_proposal_this_run", [
+                        "Reply with TEXT ONLY. Summarize the proposed edit in 3 bullets.", "Ask: 'Approve apply in next run?'"
+                    ])
                     only_text_response = False
                     stop_after_tool = True
                     break
 
                 # 2) Deny apply in same run as a proposal (enforce two-step)
                 if name == "conclude_edit" and run_stats.get("propose_ok", 0) >= 1:
-                    _deny("conclude_edit", "apply_denied", "same_run_apply_not_allowed")
+                    _emit("conclude_edit", "apply_denied", "same_run_apply_not_allowed", [
+                        "Summarize the proposed edits in 3 bullet points and ask for user approval.",
+                        "End the run. In the next run, call conclude_edit with no arguments."
+                    ])
                     only_text_response = False
                     stop_after_tool = True
                     break
 
                 # 3) Deny repeated apply in same run
                 if name == "conclude_edit" and run_stats.get("apply_ok", 0) >= 1:
-                    _deny("conclude_edit", "apply_denied", "duplicate_apply_this_run")
+                    _emit("conclude_edit", "apply_denied", "duplicate_apply_this_run", [
+                        "Do not call conclude_edit again in this run.",
+                        "Ask whether further changes or a new proposal cycle are needed."
+                    ])
                     only_text_response = False
                     stop_after_tool = True
                     break
@@ -281,7 +290,10 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
                 # inject deterministic inputs for conclude_edit from last_prop (no file I/O here)
                 if function_call_part.name == "conclude_edit" and not args.reset:
                     if not last_prop:
-                        _deny("conclude_edit","apply_denied","no_previous_proposals")
+                        _emit("conclude_edit","apply_denied","no_previous_proposals", [
+                        "Previous proposal not existent, generate only text response for user:",
+                        "'Error: repeat the request.'"
+                    ])
                         only_text_response = False; stop_after_tool = True; break
 
                     fp = last_prop.get("file_path")
@@ -290,7 +302,10 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
                     wd = os.path.join(base_dir, wd) if wd else base_dir
 
                     if not fp or ct is None:
-                        _deny("conclude_edit","apply_denied","Previous proposal missing file_path or content.")
+                        _emit("conclude_edit","apply_denied","Previous proposal missing file_path or content.", [
+                        "Previous proposal content or file path not exist, generate only text response for user:",
+                        "'Error: changes not applied, please state again the previous request.'"
+                    ])
                         only_text_response = False; stop_after_tool = True; break
                     
                     # override working_directory using wd from proposal; file_path stays as-is
@@ -343,7 +358,10 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
                 name = function_call_part.name
                 if status_ok:
                     if name == "propose_changes":
-                        run_stats["propose_ok"] = True
+                        run_stats["propose_ok"] += 1
+                        _emit("propose_changes","directive","proposal_recorded",[
+                        "Reply with TEXT ONLY. Summarize the proposed edit in 3 bullets.", "Ask: 'Approve apply in next run?'"])
+
                         # optional: cache proposed content for save_run_info
                         if isinstance(function_response, dict):
                             proposed_content = function_response.get("content")
