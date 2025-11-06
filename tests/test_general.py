@@ -2,18 +2,18 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from functions.llm_calls.run_python import run_python_file
-from functions.internal.reset_test_env import reset_test_env
-from functions.internal.init_run_session import init_run_session
-from functions.internal.clear_output_dirs import clear_output_dirs
-from functions.llm_calls.get_file_content import get_file_content
-from functions.llm_calls.get_files_info import get_files_info
-from functions.llm_calls.propose_changes import  propose_changes
-from functions.llm_calls.conclude_edit import  conclude_edit
+from src.functions.llm_calls.run_python import run_python_file
+from src.functions.internal.reset_test_env import reset_test_env
+from src.functions.internal.init_run_session import init_run_session
+from src.functions.internal.clear_output_dirs import clear_output_dirs
+from src.functions.llm_calls.get_file_content import get_file_content
+from src.functions.llm_calls.get_files_info import get_files_info
+from src.functions.llm_calls.propose_changes import propose_changes
+from src.functions.llm_calls.conclude_edit import conclude_edit
 
 # === INTRODUCTION ===
-# This is  a general test to execute of the llm function in sequence, the aim is to see if relative 
-# logs, summary, backup and diffs files are created. 
+# This is a general test that executes the LLM functions in sequence.
+# The goal is to verify that logs, summaries, backups, and diff files are correctly generated.
 
 # === CONFIGURATION ===
 TEST_DIR = "__test_env__"
@@ -25,8 +25,7 @@ RUN_DIR = os.path.join("__ai_outputs__", run_id)
 LOG_PATH = os.path.join(RUN_DIR, "actions.log")
 SUMMARY_PATH = os.path.join(RUN_DIR, "summary.txt")
 
-# === SETUP: General file structure created for testing purposes ===
-
+# === SETUP: General file structure created for testing ===
 # __test_env__/
 # ├─ hello.txt
 # ├─ create_hello.py
@@ -44,16 +43,17 @@ with open(file_path, "w", encoding="utf-8") as f:
 content = """\
 # Proposed changes to hello.txt
 """
-# File to be executed by run_python_file
+
+# File executed by run_python_file
 os.makedirs(TEST_DIR, exist_ok=True)
 with open(os.path.join(TEST_DIR, "create_hello.py"), "w", encoding="utf-8") as f:
     f.write(code_create)
 
-# General file for llm functions 
+# General test file for LLM functions
 with open(os.path.join(TEST_DIR, "hello.txt"), "w", encoding="utf-8") as f:
     f.write("Hello, world!\nThis is a test file.")
 
-# Subfolder with file for get_file_info
+# Subfolder with a file for get_files_info
 os.makedirs(os.path.join(TEST_DIR, "pkg"), exist_ok=True)
 with open(os.path.join(TEST_DIR, "pkg", "module.py"), "w", encoding="utf-8") as f:
     f.write("# module file\n")
@@ -91,10 +91,10 @@ res1 = run_python_file(
     run_id=run_id,
     function_args={"working_directory": TEST_DIR, "file_path": "create_hello.py"},
 )
-print_test_result(1, "run valid file (should log and summary)", res1)
+print_test_result(1, "run valid file (should log and summarize)", res1)
 print_logs_and_summary_tail("AFTER TEST 1")
 
-# Verify created file
+# Verify that the file was created
 created_file = os.path.join(TEST_DIR, "hello_created.txt")
 print("\n— File creation check —")
 if os.path.isfile(created_file):
@@ -111,9 +111,9 @@ res2 = get_file_content(
     run_id=run_id,
     function_args={"working_directory": TEST_DIR, "file_path": "hello.txt"},
 )
-print_test_result(2, "read valid file (should log and summary)", res2)
+print_test_result(2, "read valid file (should log and summarize)", res2)
 
-# 3) === Test get_file_info ===
+# 3) === Test get_files_info ===
 res3 = get_files_info(
     working_directory=TEST_DIR,
     run_id=run_id,
@@ -146,6 +146,6 @@ res5 = conclude_edit(
 )
 print_test_result(5, "conclude_edit on hello.txt", res5)
 
-# Optional clear
+# Optional cleanup
 if "--clear" in sys.argv:
     clear_output_dirs()

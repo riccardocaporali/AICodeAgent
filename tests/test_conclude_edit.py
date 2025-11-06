@@ -3,14 +3,14 @@ import os
 from datetime import datetime
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from functions.llm_calls.conclude_edit import  conclude_edit
-from functions.internal.reset_test_env import reset_test_env
-from functions.internal.init_run_session import init_run_session
-from functions.internal.clear_output_dirs import clear_output_dirs
+from src.functions.llm_calls.conclude_edit import conclude_edit
+from src.functions.internal.reset_test_env import reset_test_env
+from src.functions.internal.init_run_session import init_run_session
+from src.functions.internal.clear_output_dirs import clear_output_dirs
 
 TEST_DIR = "__test_env__"
 reset_test_env(TEST_DIR)
-# Get the run_ids to create the backup/diffs/logs directory 
+# Get the run_ids to create the backup/diffs/logs directory
 run_id = init_run_session()
 
 RUN_DIR = os.path.join("__ai_outputs__", run_id)
@@ -34,29 +34,28 @@ with open(os.path.join(working_dir, existing_file), "w") as f:
 
 # 1. Dry run on existing file
 print("\u25B6\uFE0F Test 1: dry run on existing file")
-result_1 = conclude_edit(working_dir, existing_file, content_v1, dry_run=True, run_id=run_id )
+result_1 = conclude_edit(working_dir, existing_file, content_v1, dry_run=True, run_id=run_id)
 print(result_1)
 
 # 2. Actual write on existing file
 print("\n\u25B6\uFE0F Test 2: actual write on existing file")
-result_2 = conclude_edit(working_dir, existing_file, content_v2, dry_run=False, run_id=run_id )
+result_2 = conclude_edit(working_dir, existing_file, content_v2, dry_run=False, run_id=run_id)
 print(result_2)
 
 # 3. Write to a new file
 print("\n\u25B6\uFE0F Test 3: write to new file")
-result_3 = conclude_edit(working_dir, new_file, content_v3, dry_run=False, run_id=run_id )
+result_3 = conclude_edit(working_dir, new_file, content_v3, dry_run=False, run_id=run_id)
 print(result_3)
 
 # 4. Attempt to write outside working directory
 print("\n\u25B6\uFE0F Test 4: path escape attempt")
-result_4 = conclude_edit(working_dir, outside_path, content_v1, run_id=run_id )
+result_4 = conclude_edit(working_dir, outside_path, content_v1, run_id=run_id)
 print(result_4)
 
 # 5. Attempt to write into a non existing directory
-print("\n\u25B6\uFE0F Test 5: Non existing directory")
-result_5 = conclude_edit("Fake_directory", new_file, content_v1, run_id=run_id )
+print("\n\u25B6\uFE0F Test 5: non-existing directory")
+result_5 = conclude_edit("Fake_directory", new_file, content_v1, run_id=run_id)
 print(result_5)
-
 
 # 6. Verbose mode with function_args manually passed, new file creation dry run on
 print("\n\u25B6\uFE0F Test 6: verbose mode with function_args")
@@ -74,7 +73,7 @@ result_6 = conclude_edit(
     content=manual_args["content"],
     run_id=manual_args["run_id"],
     dry_run=manual_args["dry_run"],
-    function_args=manual_args
+    function_args=manual_args,
 )
 print(result_6)
 
@@ -94,10 +93,10 @@ result_7 = conclude_edit(
     content=manual_args["content"],
     run_id=manual_args["run_id"],
     dry_run=manual_args["dry_run"],
-    function_args=manual_args
+    function_args=manual_args,
 )
 print(result_7)
 
-# Clear ai_ouputs sub directories if clear specified
+# Clear __ai_outputs__ subdirectories if --clear is specified
 if "--clear" in sys.argv:
     clear_output_dirs()

@@ -1,19 +1,25 @@
-import os, json, time, re, hashlib
+import os
+import json
+import time
+import re
+import hashlib
+from functions.internal.get_project_root import get_project_root
 
 def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
     """
     Build a compact, structured ledger of the last run from `messages`
-    and save two files under __ai_outputs__/run_<id>/:
-      - run_summary.json  (structured: header, calls, proposals, assistant.last_text)
+    and save two files under <PROJECT_ROOT>/__ai_outputs__/run_<id>/:
+      - run_summary.json  (structured)
       - llm_message       (plain last assistant text)
     """
-    # Compat: se il terzo argomento è in realtà extra_data (dict con wd/fp/ct), riallinea
+    # Compat: if the third argument is actually extra_data (dict with wd/fp/ct), realign
     if extra_data is None and isinstance(proposed_content, dict) and (
         {"wd", "fp", "ct"} & set(proposed_content.keys())
     ):
         extra_data, proposed_content = proposed_content, None
 
-    base_dir = os.path.abspath(os.path.join("__ai_outputs__", run_id))
+    project_root = get_project_root(__file__)
+    base_dir = os.path.join(project_root, "__ai_outputs__", run_id)
     os.makedirs(base_dir, exist_ok=True)
 
     def brief_text(s, n=160):
@@ -94,7 +100,7 @@ def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
 
                 a = rec.setdefault("args", {})
 
-                # ---- extras summary (minimale) ----
+                # ---- extras summary (minimal) ----
                 extras = {}
                 if name == "get_files_info" and isinstance(result, str):
                     lines = [ln for ln in result.splitlines() if ln.startswith("- ")]
@@ -113,13 +119,12 @@ def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
                     extras["stdout_len"] = len(stdout)
                     extras["stderr_len"] = len(stderr)
 
-                # --- conclude_edit: registra i feed dai dati iniettati (extra_data) ---
+                # --- conclude_edit: record feed data from injected data (extra_data) ---
                 if name == "conclude_edit" and isinstance(extra_data, dict):
                     feed_wd = extra_data.get("wd")
                     feed_fp = extra_data.get("fp")
                     feed_ct = extra_data.get("ct")
 
-                    # Oggetto compatto nel record
                     feed = {}
                     if feed_wd is not None:
                         feed["wd"] = feed_wd
@@ -133,7 +138,6 @@ def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
                     if feed:
                         rec["feed"] = feed
 
-                    # Aiuta il riepilogo veloce
                     if feed_fp and "target" not in extras:
                         extras["target"] = feed_fp
                     if "content_len" not in extras and "content_len" in feed:
@@ -158,13 +162,11 @@ def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
             args = rec.get("args", {}) or {}
             brief = rec.get("brief", "") or ""
 
-            # file_path: prima dagli args, poi fallback dal brief
             fp = args.get("file_path")
             if not fp:
                 m = re.search(r'Save proposed changes to "([^"]+)"', brief)
                 fp = m.group(1) if m else None
 
-            # content_len: da proposed_content, altrimenti dagli args/extras
             if isinstance(proposed_content, str):
                 clen = len(proposed_content)
             else:
@@ -207,3 +209,7 @@ def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
         f.write(last_text or "")
 
     return json_path
+
+
+
+

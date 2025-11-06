@@ -1,8 +1,9 @@
 import os
-from datetime import datetime  
+from datetime import datetime
+from functions.internal.get_project_root import get_project_root
 
 # Function to cut log after MAX characters
-def _clip(s): 
+def _clip(s):
     MAX = 500
     return s if len(s) <= MAX else s[:MAX] + " [truncated]"
 
@@ -17,7 +18,14 @@ def save_logs(
     result=None,  # "OK" | "ERROR" | "TIMEOUT"
     details=None,
 ):
-    # Define global utility variables
+    """
+    Save a log entry under <PROJECT_ROOT>/__ai_outputs__/<run_id>/actions.log
+    Logs all tool operations, file actions, and results.
+    """
+    project_root = get_project_root(__file__)
+    if not os.path.isabs(log_dir):
+        log_dir = os.path.join(project_root, "__ai_outputs__", log_dir)
+
     os.makedirs(log_dir, exist_ok=True)
     log_path = os.path.join(log_dir, "actions.log")
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -33,7 +41,7 @@ def save_logs(
                     f" Result: {result}\n"
                 )
                 if details:
-                   log_line += f"   + details: {details}\n"
+                    log_line += f"   + details: {details}\n"
             else:
                 log_line = (
                     f"\n[{timestamp}] Function {function_name}: "
@@ -96,7 +104,6 @@ def save_logs(
             f"run the file: {file_name}\n"
             f" Result: {result}\n"
         )
-        
         if details:
             if result == "ERROR":
                 log_line += f"   + details: {details}\n"
@@ -106,7 +113,7 @@ def save_logs(
                     s = _clip(f"{k}: {str(v).rstrip()}")
                     log_line += f"     + {s}\n"
 
-    # Write to file (only once)
+    # Write to log file
     if log_line:
         with open(log_path, "a", encoding="utf-8") as log_file:
             log_file.write(log_line)

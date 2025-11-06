@@ -3,10 +3,10 @@ import sys
 from datetime import datetime
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from functions.llm_calls.get_file_content import get_file_content
-from functions.internal.reset_test_env import reset_test_env
-from functions.internal.init_run_session import init_run_session
-from functions.internal.clear_output_dirs import clear_output_dirs
+from src.functions.llm_calls.get_file_content import get_file_content
+from src.functions.internal.reset_test_env import reset_test_env
+from src.functions.internal.init_run_session import init_run_session
+from src.functions.internal.clear_output_dirs import clear_output_dirs
 
 # === CONFIGURATION ===
 TEST_DIR = "__test_env__"
@@ -16,7 +16,7 @@ run_id = init_run_session()
 # Paths ai_outputs
 RUN_DIR = os.path.join("__ai_outputs__", run_id)
 
-# === SETUP: crea file di esempio ===
+# === SETUP: create sample file ===
 os.makedirs(TEST_DIR, exist_ok=True)
 file_path = os.path.join(TEST_DIR, "hello.txt")
 with open(file_path, "w", encoding="utf-8") as f:
@@ -44,9 +44,9 @@ res1 = get_file_content(
     run_id=run_id,
     function_args={"working_directory": TEST_DIR, "file_path": "hello.txt"},
 )
-print_test_result(1, "read valid file (should log and summary)", res1)
+print_test_result(1, "read valid file (should log and summarize)", res1)
 
-# 2) Read not existent file, error is expected 
+# 2) Read nonexistent file, error is expected
 res2 = get_file_content(
     working_directory=TEST_DIR,
     file_path="nonexistent.txt",
@@ -55,7 +55,7 @@ res2 = get_file_content(
 )
 print_test_result(2, "read nonexistent file (should return error)", res2)
 
-# 3) Path trasversal, error is expected 
+# 3) Path traversal, error is expected
 res3 = get_file_content(
     working_directory=TEST_DIR,
     file_path="../secrets.py",
@@ -64,6 +64,6 @@ res3 = get_file_content(
 )
 print_test_result(3, "path escape attempt (should return error)", res3)
 
-# Clear ai_outputs sub directories if requested
+# Clear ai_outputs subdirectories if requested
 if "--clear" in sys.argv:
     clear_output_dirs()

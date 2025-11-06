@@ -16,12 +16,13 @@ from functions.internal.init_run_session import init_run_session
 from functions.internal.save_run_info import save_run_info
 from functions.internal.prev_proposal import prev_proposal
 from functions.internal.prev_run_summary_path import prev_run_summary_path
+from functions.internal.get_project_root import get_project_root
 
-# ---- USEFULL FUNCTIONS ------------------------------------------------------
+# ---- USEFUL FUNCTIONS ------------------------------------------------------
 def _emit(_name, kind, reason, steps):
     payload = {"ok": False, "type": kind, "reason": reason, "next_steps": steps}
     if args.I_O:
-        print(f"-> {_name} denied: {payload['error']}")
+        print(f"-> {_name} denied: {payload['reason']}")
     function_response_list.append(
         types.Part.from_function_response(name=_name, response=payload)
     )
@@ -269,7 +270,7 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
                     ])
                     only_text_response = False
                     stop_after_tool = True
-                    break
+                    break 
                 #-------------------------------------------------------
 
                # ---- NORMALIZE ARGS & DISPATCH --------------------------------------
@@ -279,11 +280,10 @@ while cycle_number <= 15:   # runs up to 16 iters (0..15)
                 # snapshot raw LLM args
                 function_call_part.args["function_args"] = dict(function_call_part.args)
 
-                # normalize working directory (default)
+               # normalize working directory (force absolute project_root/code_to_fix)
                 original_dir = function_call_part.args.get("working_directory", "")
-                base_dir = "code_to_fix"
+                base_dir = os.path.join(get_project_root(__file__), "code_to_fix")
                 function_call_part.args["working_directory"] = os.path.join(base_dir, original_dir) if original_dir else base_dir
-
                 # attach run_id
                 function_call_part.args["run_id"] = run_id
 
