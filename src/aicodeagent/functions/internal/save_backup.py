@@ -1,8 +1,8 @@
 import os
 import shutil
-from functions.internal.get_project_root import get_project_root
-from functions.internal.get_secure_path import get_secure_path
-from functions.internal.get_versioned_path import get_versioned_path
+from aicodeagent.functions.internal.get_project_root import get_project_root
+from aicodeagent.functions.internal.get_secure_path import get_secure_path
+from aicodeagent.functions.internal.get_versioned_path import get_versioned_path
 
 def save_backup(original_path, file_name, backup_dir=None):
     """

@@ -1,5 +1,5 @@
 import os
-from functions.internal.get_project_root import get_project_root
+from aicodeagent.functions.internal.get_project_root import get_project_root
 
 # === Output files live in the project root ===
 SNAPSHOT_NAME = "project_snapshot.txt"

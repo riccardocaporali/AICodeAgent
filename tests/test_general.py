@@ -1,15 +1,14 @@
 import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.functions.llm_calls.run_python import run_python_file
-from src.functions.internal.reset_test_env import reset_test_env
-from src.functions.internal.init_run_session import init_run_session
-from src.functions.internal.clear_output_dirs import clear_output_dirs
-from src.functions.llm_calls.get_file_content import get_file_content
-from src.functions.llm_calls.get_files_info import get_files_info
-from src.functions.llm_calls.propose_changes import propose_changes
-from src.functions.llm_calls.conclude_edit import conclude_edit
+from aicodeagent.functions.llm_calls.run_python import run_python_file
+from aicodeagent.functions.internal.reset_test_env import reset_test_env
+from aicodeagent.functions.internal.init_run_session import init_run_session
+from aicodeagent.functions.internal.clear_output_dirs import clear_output_dirs
+from aicodeagent.functions.llm_calls.get_file_content import get_file_content
+from aicodeagent.functions.llm_calls.get_files_info import get_files_info
+from aicodeagent.functions.llm_calls.propose_changes import propose_changes
+from aicodeagent.functions.llm_calls.conclude_edit import conclude_edit
 
 # === INTRODUCTION ===
 # This is a general test that executes the LLM functions in sequence.

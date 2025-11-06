@@ -1,12 +1,11 @@
-import os, sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import os
 from google import genai
 from google.genai import types
-from functions.llm_calls.get_files_info import get_files_info
-from functions.llm_calls.get_file_content import get_file_content
-from functions.llm_calls.run_python import run_python_file
-from functions.llm_calls.propose_changes import propose_changes
-from functions.llm_calls.conclude_edit import conclude_edit
+from aicodeagent.functions.llm_calls.get_files_info import get_files_info
+from aicodeagent.functions.llm_calls.get_file_content import get_file_content
+from aicodeagent.functions.llm_calls.run_python import run_python_file
+from aicodeagent.functions.llm_calls.propose_changes import propose_changes
+from aicodeagent.functions.llm_calls.conclude_edit import conclude_edit
 
 # Define the dictionary of functions
 function_dict = {

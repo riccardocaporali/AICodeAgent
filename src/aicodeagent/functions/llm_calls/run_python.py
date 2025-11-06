@@ -1,9 +1,8 @@
 import os, sys
 import subprocess
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from functions.internal.get_secure_path import get_secure_path
-from functions.internal.save_summary_entry import save_summary_entry
-from functions.internal.save_logs import save_logs
+from aicodeagent.functions.internal.get_secure_path import get_secure_path
+from aicodeagent.functions.internal.save_summary_entry import save_summary_entry
+from aicodeagent.functions.internal.save_logs import save_logs
 
 # --- helpers (module-level) ---
 def pack_run_data(stdout, stderr, exit_code):

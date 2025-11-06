@@ -1,11 +1,10 @@
 import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.functions.llm_calls.run_python import run_python_file
-from src.functions.internal.reset_test_env import reset_test_env
-from src.functions.internal.init_run_session import init_run_session
-from src.functions.internal.clear_output_dirs import clear_output_dirs
+from aicodeagent.functions.llm_calls.run_python import run_python_file
+from aicodeagent.functions.internal.reset_test_env import reset_test_env
+from aicodeagent.functions.internal.init_run_session import init_run_session
+from aicodeagent.functions.internal.clear_output_dirs import clear_output_dirs
 
 # === CONFIGURATION ===
 TEST_DIR = "__test_env__"

@@ -2,11 +2,11 @@ import os
 import sys
 import difflib
 from datetime import datetime
-from functions.internal.get_project_root import get_project_root
-from functions.internal.save_summary_entry import save_summary_entry
-from functions.internal.save_backup import save_backup
-from functions.internal.save_logs import save_logs
-from functions.internal.save_diffs import save_diffs
+from aicodeagent.functions.internal.get_project_root import get_project_root
+from aicodeagent.functions.internal.save_summary_entry import save_summary_entry
+from aicodeagent.functions.internal.save_backup import save_backup
+from aicodeagent.functions.internal.save_logs import save_logs
+from aicodeagent.functions.internal.save_diffs import save_diffs
 
 def save_file(run_id,
               function_name,

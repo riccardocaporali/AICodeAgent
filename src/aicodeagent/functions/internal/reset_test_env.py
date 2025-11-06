@@ -1,6 +1,6 @@
 import os
 import shutil
-from functions.internal.get_project_root import get_project_root
+from aicodeagent.functions.internal.get_project_root import get_project_root
 
 def reset_test_env(test_dir_name: str = "__test_env__") -> str:
     """

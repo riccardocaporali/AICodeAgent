@@ -1,8 +1,7 @@
-import os, sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from functions.internal.get_secure_path import get_secure_path
-from functions.internal.save_summary_entry import save_summary_entry
-from functions.internal.save_logs import save_logs
+import os
+from aicodeagent.functions.internal.get_secure_path import get_secure_path
+from aicodeagent.functions.internal.save_summary_entry import save_summary_entry
+from aicodeagent.functions.internal.save_logs import save_logs
 
 def get_file_content(working_directory, file_path, run_id, function_args=None):  
     # Function name

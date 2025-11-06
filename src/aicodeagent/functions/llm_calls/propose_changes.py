@@ -1,10 +1,8 @@
 import os
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from functions.internal.save_file import save_file
-from functions.internal.get_secure_path import get_secure_path
-from functions.internal.save_summary_entry import save_summary_entry
-from functions.internal.save_logs import save_logs
+from aicodeagent.functions.internal.save_file import save_file
+from aicodeagent.functions.internal.get_secure_path import get_secure_path
+from aicodeagent.functions.internal.save_summary_entry import save_summary_entry
+from aicodeagent.functions.internal.save_logs import save_logs
 
 
 def propose_changes(working_directory, file_path, content, run_id, function_args=None):

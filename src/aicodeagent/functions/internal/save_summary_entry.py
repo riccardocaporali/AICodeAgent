@@ -1,5 +1,5 @@
 import os
-from functions.internal.make_human_readable_diff import make_human_readable_diff
+from aicodeagent.functions.internal.make_human_readable_diff import make_human_readable_diff
 
 def save_summary_entry(summary_dir, function_name, function_args, log_line=None, diff_lines=None):
     # Define the summary directory (with optional run_id subfolder)

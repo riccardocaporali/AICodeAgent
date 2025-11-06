@@ -1,12 +1,11 @@
 import sys
 import os
 from datetime import datetime
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.functions.llm_calls.conclude_edit import conclude_edit
-from src.functions.internal.reset_test_env import reset_test_env
-from src.functions.internal.init_run_session import init_run_session
-from src.functions.internal.clear_output_dirs import clear_output_dirs
+from aicodeagent.functions.llm_calls.conclude_edit import conclude_edit
+from aicodeagent.functions.internal.reset_test_env import reset_test_env
+from aicodeagent.functions.internal.init_run_session import init_run_session
+from aicodeagent.functions.internal.clear_output_dirs import clear_output_dirs
 
 TEST_DIR = "__test_env__"
 reset_test_env(TEST_DIR)

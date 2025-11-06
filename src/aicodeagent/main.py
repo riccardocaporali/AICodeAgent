@@ -9,14 +9,14 @@ import shutil
 from dotenv import load_dotenv
 from google.genai import types
 from google import genai
-from functions import functions_schemas as schemas
-from functions.functions_schemas import function_dict
-from functions.call_function import call_function
-from functions.internal.init_run_session import init_run_session
-from functions.internal.save_run_info import save_run_info
-from functions.internal.prev_proposal import prev_proposal
-from functions.internal.prev_run_summary_path import prev_run_summary_path
-from functions.internal.get_project_root import get_project_root
+from aicodeagent.functions import functions_schemas as schemas
+from aicodeagent.functions.functions_schemas import function_dict
+from aicodeagent.functions.call_function import call_function
+from aicodeagent.functions.internal.init_run_session import init_run_session
+from aicodeagent.functions.internal.save_run_info import save_run_info
+from aicodeagent.functions.internal.prev_proposal import prev_proposal
+from aicodeagent.functions.internal.prev_run_summary_path import prev_run_summary_path
+from aicodeagent.functions.internal.get_project_root import get_project_root
 
 # ---- USEFUL FUNCTIONS ------------------------------------------------------
 def _emit(_name, kind, reason, steps):
