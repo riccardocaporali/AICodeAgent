@@ -1,20 +1,22 @@
-import os
-import sys
 import difflib
-from datetime import datetime
-from aicodeagent.functions.internal.get_project_root import get_project_root
-from aicodeagent.functions.internal.save_summary_entry import save_summary_entry
-from aicodeagent.functions.internal.save_backup import save_backup
-from aicodeagent.functions.internal.save_logs import save_logs
-from aicodeagent.functions.internal.save_diffs import save_diffs
+import os
 
-def save_file(run_id,
-              function_name,
-              function_args,
-              dry_run=True,
-              file_name=None,
-              source_path=None,
-              content=None):
+from aicodeagent.functions.internal.get_project_root import get_project_root
+from aicodeagent.functions.internal.save_backup import save_backup
+from aicodeagent.functions.internal.save_diffs import save_diffs
+from aicodeagent.functions.internal.save_logs import save_logs
+from aicodeagent.functions.internal.save_summary_entry import save_summary_entry
+
+
+def save_file(
+    run_id,
+    function_name,
+    function_args,
+    dry_run=True,
+    file_name=None,
+    source_path=None,
+    content=None,
+):
     """
     Save a file and record its backup, diff, log, and summary.
 
@@ -41,7 +43,9 @@ def save_file(run_id,
     if source_path is not None:
         original_path = os.path.abspath(source_path)
         if not os.path.isfile(original_path):
-            raise ValueError("Invalid usage: provide 'content', or both 'source_path' and 'content'")
+            raise ValueError(
+                "Invalid usage: provide 'content', or both 'source_path' and 'content'"
+            )
     else:
         original_path = None
 
@@ -62,7 +66,7 @@ def save_file(run_id,
                 new_lines,
                 fromfile=f"original/{file_name}",
                 tofile=f"modified/{file_name}",
-                lineterm=""
+                lineterm="",
             )
         )
 
@@ -74,13 +78,23 @@ def save_file(run_id,
         save_diffs(diff_dir, diff_lines, file_name)
 
     elif source_path is not None:
-        raise ValueError("If source_path is provided, content must also be provided to compute diff")
+        raise ValueError(
+            "If source_path is provided, content must also be provided to compute diff"
+        )
     else:
         raise ValueError("Either content or source_path must be provided")
 
     # === Logs ===
-    log_line = save_logs(file_name, base_dir, function_name, source_path, content, dry_run, result="OK")
+    log_line = save_logs(
+        file_name, base_dir, function_name, source_path, content, dry_run, result="OK"
+    )
 
     # === Summary ===
     if log_line and (source_path or content):
-        save_summary_entry(base_dir, function_name, function_args, log_line=log_line, diff_lines=diff_lines)
+        save_summary_entry(
+            base_dir,
+            function_name,
+            function_args,
+            log_line=log_line,
+            diff_lines=diff_lines,
+        )

@@ -1,9 +1,11 @@
-import os
-import json
-import time
-import re
 import hashlib
+import json
+import os
+import re
+import time
+
 from aicodeagent.functions.internal.get_project_root import get_project_root
+
 
 def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
     """
@@ -13,8 +15,10 @@ def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
       - llm_message       (plain last assistant text)
     """
     # Compat: if the third argument is actually extra_data (dict with wd/fp/ct), realign
-    if extra_data is None and isinstance(proposed_content, dict) and (
-        {"wd", "fp", "ct"} & set(proposed_content.keys())
+    if (
+        extra_data is None
+        and isinstance(proposed_content, dict)
+        and ({"wd", "fp", "ct"} & set(proposed_content.keys()))
     ):
         extra_data, proposed_content = proposed_content, None
 
@@ -45,9 +49,9 @@ def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
 
     # --- extract last non-PREV_RUN_JSON user prompt ---
     user_prompt, _last_any_user = "", ""
-    for msg in (messages or []):
+    for msg in messages or []:
         if getattr(msg, "role", None) == "user":
-            for p in (getattr(msg, "parts", []) or []):
+            for p in getattr(msg, "parts", []) or []:
                 t = getattr(p, "text", None)
                 if not t or not t.strip():
                     continue
@@ -59,7 +63,7 @@ def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
         user_prompt = _last_any_user
 
     # --- walk message stream ---
-    for msg in (messages or []):
+    for msg in messages or []:
         role = getattr(msg, "role", None)
         parts = getattr(msg, "parts", []) or []
 
@@ -98,7 +102,7 @@ def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
                 rec["t"] = name
                 rec["status"] = parse_status(resp if isinstance(resp, dict) else result)
 
-                a = rec.setdefault("args", {})
+                rec.setdefault("args", {})
 
                 # ---- extras summary (minimal) ----
                 extras = {}
@@ -151,7 +155,9 @@ def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
                         "message": err.get("message"),
                     }
 
-                rec["brief"] = brief_text(str(result), 160) if isinstance(result, str) else None
+                rec["brief"] = (
+                    brief_text(str(result), 160) if isinstance(result, str) else None
+                )
                 rec["extras"] = extras
                 calls.append(rec)
 
@@ -183,7 +189,9 @@ def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
             }
             if isinstance(proposed_content, str):
                 proposal["content"] = proposed_content
-                proposal["digest"] = hashlib.sha256(proposed_content.encode("utf-8")).hexdigest()
+                proposal["digest"] = hashlib.sha256(
+                    proposed_content.encode("utf-8")
+                ).hexdigest()
             proposals.append(proposal)
             pid += 1
 
@@ -209,7 +217,3 @@ def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
         f.write(last_text or "")
 
     return json_path
-
-
-
-

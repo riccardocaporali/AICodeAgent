@@ -1,5 +1,6 @@
 import os
 
+
 def get_versioned_path(base_path):
     """
     Returns a non-conflicting path by appending _1, _2, etc. if needed.

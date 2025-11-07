@@ -14,6 +14,7 @@ __test_env__
 TO_DO.txt
 project_snapshot.txt
 project_tree.txt
+code_to_fix/*
 
 # Virtual environments
 .venv

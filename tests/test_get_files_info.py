@@ -1,10 +1,10 @@
 import os
 import sys
 
-from aicodeagent.functions.llm_calls.get_files_info import get_files_info
-from aicodeagent.functions.internal.reset_test_env import reset_test_env
-from aicodeagent.functions.internal.init_run_session import init_run_session
 from aicodeagent.functions.internal.clear_output_dirs import clear_output_dirs
+from aicodeagent.functions.internal.init_run_session import init_run_session
+from aicodeagent.functions.internal.reset_test_env import reset_test_env
+from aicodeagent.functions.llm_calls.get_files_info import get_files_info
 
 # === CONFIGURATION ===
 TEST_DIR = "__test_env__"
@@ -27,10 +27,12 @@ with open(os.path.join(TEST_DIR, "example.txt"), "w", encoding="utf-8") as f:
 with open(os.path.join(TEST_DIR, "pkg", "module.py"), "w", encoding="utf-8") as f:
     f.write("# module file\n")
 
+
 # === HELPERS ===
 def print_test_result(n, description, result):
     print(f"\n▶️ Test {n}: {description}")
     print(result)
+
 
 def read_tail(path, n=40):
     if not os.path.isfile(path):
@@ -38,6 +40,7 @@ def read_tail(path, n=40):
     with open(path, "r", encoding="utf-8", errors="replace") as f:
         lines = f.readlines()
     return "".join(lines[-n:]).rstrip()
+
 
 print("\n==== get_files_info TESTS ====\n")
 
@@ -54,12 +57,12 @@ print_test_result(1, "list contents of pkg/", res1)
 res2 = get_files_info(
     working_directory=TEST_DIR,
     run_id=run_id,
-    directory=".", 
+    directory=".",
     function_args={"working_directory": TEST_DIR, "directory": "."},
 )
 print_test_result(2, "list contents of base test directory", res2)
 
-# 3) ERROR: attempt to access outside of test_env 
+# 3) ERROR: attempt to access outside of test_env
 res3 = get_files_info(
     working_directory=TEST_DIR,
     run_id=run_id,
@@ -68,7 +71,7 @@ res3 = get_files_info(
 )
 print_test_result(3, "attempt to escape working directory", res3)
 
-# 4) ERROR: non-existent subdir in test_env 
+# 4) ERROR: non-existent subdir in test_env
 res4 = get_files_info(
     working_directory=TEST_DIR,
     run_id=run_id,

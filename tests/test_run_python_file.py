@@ -1,10 +1,10 @@
 import os
 import sys
 
-from aicodeagent.functions.llm_calls.run_python import run_python_file
-from aicodeagent.functions.internal.reset_test_env import reset_test_env
-from aicodeagent.functions.internal.init_run_session import init_run_session
 from aicodeagent.functions.internal.clear_output_dirs import clear_output_dirs
+from aicodeagent.functions.internal.init_run_session import init_run_session
+from aicodeagent.functions.internal.reset_test_env import reset_test_env
+from aicodeagent.functions.llm_calls.run_python import run_python_file
 
 # === CONFIGURATION ===
 TEST_DIR = "__test_env__"
@@ -36,10 +36,12 @@ time.sleep(40)
 with open(os.path.join(TEST_DIR, "sleep_long.py"), "w", encoding="utf-8") as f:
     f.write(code_sleep)
 
+
 # === HELPERS ===
 def print_test_result(n, description, result):
     print(f"\n▶️ Test {n}: {description}")
     print(result)
+
 
 def read_all(path):
     if not os.path.isfile(path):
@@ -47,12 +49,14 @@ def read_all(path):
     with open(path, "r", encoding="utf-8", errors="replace") as f:
         return f.read()
 
+
 def read_tail(path, n=20):
     if not os.path.isfile(path):
         return "<missing>"
     with open(path, "r", encoding="utf-8", errors="replace") as f:
         lines = f.readlines()
     return "".join(lines[-n:]).rstrip()
+
 
 print("\n==== run_python_file TESTS ====\n")
 
@@ -76,13 +80,19 @@ else:
     print("hello_created.txt was NOT created ❌")
 
 # 2) ERROR: run nonexistent file
-res2 = run_python_file(TEST_DIR, "nonexistent.txt", run_id,
+res2 = run_python_file(
+    TEST_DIR,
+    "nonexistent.txt",
+    run_id,
     function_args={"working_directory": TEST_DIR, "file_path": "nonexistent.txt"},
 )
 print_test_result(2, "nonexistent file (should return error)", res2)
 
 # 3) ERROR: path traversal
-res3 = run_python_file(TEST_DIR, "../secrets.py", run_id,
+res3 = run_python_file(
+    TEST_DIR,
+    "../secrets.py",
+    run_id,
     function_args={"working_directory": TEST_DIR, "file_path": "../secrets.py"},
 )
 print_test_result(3, "path traversal (should return error)", res3)

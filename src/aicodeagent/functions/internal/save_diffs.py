@@ -1,7 +1,9 @@
 import os
+
 from aicodeagent.functions.internal.get_project_root import get_project_root
 from aicodeagent.functions.internal.get_secure_path import get_secure_path
 from aicodeagent.functions.internal.get_versioned_path import get_versioned_path
+
 
 def save_diffs(diff_dir=None, diff_content=None, file_name="diff.txt"):
     """
@@ -21,7 +23,3 @@ def save_diffs(diff_dir=None, diff_content=None, file_name="diff.txt"):
         f.writelines(diff_content or [])
 
     return diff_path
-
-
-
-

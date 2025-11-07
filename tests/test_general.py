@@ -1,14 +1,14 @@
 import os
 import sys
 
-from aicodeagent.functions.llm_calls.run_python import run_python_file
-from aicodeagent.functions.internal.reset_test_env import reset_test_env
-from aicodeagent.functions.internal.init_run_session import init_run_session
 from aicodeagent.functions.internal.clear_output_dirs import clear_output_dirs
+from aicodeagent.functions.internal.init_run_session import init_run_session
+from aicodeagent.functions.internal.reset_test_env import reset_test_env
+from aicodeagent.functions.llm_calls.conclude_edit import conclude_edit
 from aicodeagent.functions.llm_calls.get_file_content import get_file_content
 from aicodeagent.functions.llm_calls.get_files_info import get_files_info
 from aicodeagent.functions.llm_calls.propose_changes import propose_changes
-from aicodeagent.functions.llm_calls.conclude_edit import conclude_edit
+from aicodeagent.functions.llm_calls.run_python import run_python_file
 
 # === INTRODUCTION ===
 # This is a general test that executes the LLM functions in sequence.
@@ -57,16 +57,19 @@ os.makedirs(os.path.join(TEST_DIR, "pkg"), exist_ok=True)
 with open(os.path.join(TEST_DIR, "pkg", "module.py"), "w", encoding="utf-8") as f:
     f.write("# module file\n")
 
+
 # === HELPERS ===
 def print_test_result(n, description, result):
     print(f"\n▶️ Test {n}: {description}")
     print(result)
+
 
 def read_all(path):
     if not os.path.isfile(path):
         return ""
     with open(path, "r", encoding="utf-8", errors="replace") as f:
         return f.read()
+
 
 def read_tail(path, n=20):
     if not os.path.isfile(path):
@@ -75,11 +78,13 @@ def read_tail(path, n=20):
         lines = f.readlines()
     return "".join(lines[-n:]).rstrip()
 
+
 def print_logs_and_summary_tail(label):
     print(f"\n— {label} | actions.log (tail) —")
     print(read_tail(LOG_PATH, n=40))
     print(f"\n— {label} | summary.txt (tail) —")
     print(read_tail(SUMMARY_PATH, n=80))
+
 
 print("\n==== LLM FUNCTIONS TESTS ====\n")
 

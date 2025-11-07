@@ -1,6 +1,6 @@
 # AiCodeAgent – AI-Driven Code Refactoring Agent
 
-Code_Fixer is an AI agent for automatic code analysis, debugging, and refactoring.  
+AiCodeAgent is an AI-driven code refactoring agent designed for autonomous debugging, analysis, and self-contained code repair.
 It uses Google Gemini with function-calling to read, analyze, propose, and safely apply code edits inside a sandboxed environment.
 
 Each session generates:
@@ -26,36 +26,42 @@ Each session generates:
 ```text
 AiCodeAgent/
 │
-├── main.py                               # Main LLM loop (prompt, throttling/gating, summary)
-│
-├── functions/
-│   ├── functions_schemas.py              # Function schemas exposed to the model
-│   ├── call_function.py                  # Dispatcher for function execution
-│   │
-│   ├── llm_calls/                        # Tools callable by the LLM (function-calling)
-│   │   ├── conclude_edit.py
-│   │   ├── get_file_content.py
-│   │   ├── get_files_info.py
-│   │   ├── propose_changes.py
-│   │   └── run_python.py
-│   │
-│   └── internal/                         # Internal helpers (IO, persistence, guards, utils)
-│       ├── clear_output_dirs.py
-│       ├── get_secure_path.py
-│       ├── get_versioned_path.py
-│       ├── init_run_session.py
-│       ├── make_human_readable.py
-│       ├── prev_proposal.py
-│       ├── prev_run_summary_path.py
-│       ├── reset_test_env.py
-│       ├── save_backup.py
-│       ├── save_diffs.py
-│       ├── save_file.py
-│       ├── save_logs.py
-│       ├── save_run_info.py
-│       └── save_summary_entry.py
-│
+├── src/
+│   └── aicodeagent/
+│       ├── main.py                               # Main LLM loop (prompt, throttling/gating, summary)
+│       │
+│       ├── functions/
+│       │   ├── functions_schemas.py              # Function schemas exposed to the model
+│       │   ├── call_function.py                  # Dispatcher for function execution
+│       │   │
+│       │   ├── llm_calls/                        # Tools callable by the LLM (function-calling)
+│       │   │   ├── conclude_edit.py
+│       │   │   ├── get_file_content.py
+│       │   │   ├── get_files_info.py
+│       │   │   ├── propose_changes.py
+│       │   │   └── run_python.py
+│       │   │
+│       │   └── internal/                         # Internal helpers (IO, persistence, guards, utils)
+│       │       ├── clear_output_dirs.py
+│       │       ├── get_secure_path.py
+│       │       ├── get_versioned_path.py
+│       │       ├── init_run_session.py
+│       │       ├── make_human_readable.py
+│       │       ├── prev_proposal.py
+│       │       ├── prev_run_summary_path.py
+│       │       ├── reset_test_env.py
+│       │       ├── save_backup.py
+│       │       ├── save_diffs.py
+│       │       ├── save_file.py
+│       │       ├── save_logs.py
+│       │       ├── save_run_info.py
+│       │       └── save_summary_entry.py
 ├── code_to_fix/                          # Sandboxed workspace analyzed by the agent
+│
+├── examples/
+│   └── minirepo/
+│       └── code_to_fix/
+│           └── calculator_bugged/        # Demo project used in quickstart
 │
 ├── ai_outputs/                           # Structured outputs (logs, backups, summaries, diffs)
 │
@@ -67,47 +73,56 @@ AiCodeAgent/
 1. **Clone the repository**
 
     ```bash
-    git clone https://github.com/riccardocaporali/code_fixer.git
+    git clone https://github.com/riccardocaporali/AiCodeAgent.git
     cd AiCodeAgent
     ```
 
-2. **Create a .env file with your Gemini API key**
+2. **Create a `.env` file with your Gemini API key**
 
     ```bash
     GEMINI_API_KEY=your_api_key_here
     ```
 
-3. **Install dependencies**
+3. **Install dependencies using uv**
 
     ```bash
-    pip install -r requirements.txt
+    uv sync
     ```
 
 4. **Run a quick test**
-   ```bash
-   python main.py "Say hello"
-   ```
+
+    ```bash
+    uv run aicodeagent "Hello"
+    ```
+
+---  
+
+## Quick Demo
+
+A ready-to-run demo is included to showcase the agent’s workflow.
+
+```bash
+bash demo_quickstart.sh
 
 ## How It Works
 
-Each execution (run_id) represents one autonomous LLM session.
+Each execution (`run_id`) represents one autonomous LLM session that analyzes code, detects issues, and proposes safe corrections inside the sandbox.
 
-**Analysis**
+**Typical flow**
 ```bash
-python main.py "Find potential bugs in utils/math.py" --I_O
-```
+uv run aicodeagent "Analyze and fix the code"
 
-**Propose changes**
-```bash
-python main.py "Fix the bug you found" --I_O
-```
+During the run, the agent:
+ • Inspects files under code_to_fix/
+ • Identifies issues and proposes non-destructive changes
+ • Saves diffs, logs, and summaries under __ai_outputs__/run_<id>/
 
-**Apply previously proposed edits**
-```bash
-python main.py "Apply the proposed fix" --I_O
-```
+To apply the last approved proposal:
+uv run aicodeagent "Apply the proposed fix"
 
-Proposals are saved in `run_summary.json` and reused in the next run for consistent apply validation.
+All proposals and metadata are stored in:
+__ai_outputs__/run_<id>/run_summary.json
+(for reproducibility and audit)
 
 
 ## Safety Mechanisms

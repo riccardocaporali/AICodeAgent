@@ -1,15 +1,19 @@
 import os
-from aicodeagent.functions.internal.save_file import save_file
-from aicodeagent.functions.internal.get_secure_path import get_secure_path
-from aicodeagent.functions.internal.save_summary_entry import save_summary_entry
-from aicodeagent.functions.internal.save_logs import save_logs
 
-def conclude_edit(working_directory, file_path, content, run_id, function_args=None, dry_run=False):
+from aicodeagent.functions.internal.get_secure_path import get_secure_path
+from aicodeagent.functions.internal.save_file import save_file
+from aicodeagent.functions.internal.save_logs import save_logs
+from aicodeagent.functions.internal.save_summary_entry import save_summary_entry
+
+
+def conclude_edit(
+    working_directory, file_path, content, run_id, function_args=None, dry_run=False
+):
     # Function name
     function_name = "conclude_edit"
     # Define summary directory
     base_dir = os.path.abspath(os.path.join("__ai_outputs__", run_id))
-    # Get the file name 
+    # Get the file name
     file_name = "unknown"
 
     try:
@@ -18,29 +22,48 @@ def conclude_edit(working_directory, file_path, content, run_id, function_args=N
 
         # Stop the function and save changes if dry run. Save file update the logs and summary
         if os.path.exists(full_path):
-            save_file(run_id, function_name, function_args, dry_run=dry_run, source_path=full_path, content=content)
+            save_file(
+                run_id,
+                function_name,
+                function_args,
+                dry_run=dry_run,
+                source_path=full_path,
+                content=content,
+            )
             if dry_run:
-                return ("dry run is set to true, no changes applied to the file, "
-                    "see proposed changes in __ai_outputs__")
+                return (
+                    "dry run is set to true, no changes applied to the file, "
+                    "see proposed changes in __ai_outputs__"
+                )
             with open(full_path, "w", encoding="utf-8") as f:
                 f.write(content)
             return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
         else:
             file_name = os.path.basename(full_path)
-            save_file(run_id, function_name, function_args, dry_run=dry_run, file_name=file_name, content=content)
+            save_file(
+                run_id,
+                function_name,
+                function_args,
+                dry_run=dry_run,
+                file_name=file_name,
+                content=content,
+            )
             if dry_run:
-                return ("dry run is set to true, new file not created, "
-                        "see proposed changes in __ai_outputs__")
+                return (
+                    "dry run is set to true, new file not created, "
+                    "see proposed changes in __ai_outputs__"
+                )
             with open(full_path, "w", encoding="utf-8") as f:
                 f.write(content)
-            return f'Successfully wrote to "{file_path}" ({len(content)} characters written)' 
+            return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
 
     except Exception as e:
         details = str(e)
         # Save logs
-        log_line = save_logs(file_name, base_dir, function_name,result="ERROR",details=details)
+        log_line = save_logs(
+            file_name, base_dir, function_name, result="ERROR", details=details
+        )
         # Save summary
         if log_line:
             save_summary_entry(base_dir, function_name, function_args, log_line)
         return "Error: " + str(e)
-    

@@ -1,6 +1,8 @@
 import os
 import shutil
+
 from aicodeagent.functions.internal.get_project_root import get_project_root
+
 
 def clear_output_dirs():
     """
@@ -28,7 +30,11 @@ def clear_output_dirs():
         with open(counter_file, "w", encoding="utf-8") as f:
             f.write("0")
 
-    print(f"\n✅ Clear finished. Run directories removed: {cleared}, run counter reset to 0.\n", flush=True)
+    print(
+        f"\n✅ Clear finished. Run directories removed: {cleared}, run counter reset to 0.\n",
+        flush=True,
+    )
+
 
 if __name__ == "__main__":
     clear_output_dirs()

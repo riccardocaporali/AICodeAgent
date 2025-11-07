@@ -4,10 +4,15 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
+authors = [{ name = "Riccardo Caporali" }]
+license = { text = "MIT" }
 dependencies = [
     "google-genai==1.12.1",
     "python-dotenv==1.1.0",
 ]
+[tool.isort]
+profile = "black"
+
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"

@@ -1,11 +1,10 @@
 import os
 import sys
-from datetime import datetime
 
-from aicodeagent.functions.llm_calls.get_file_content import get_file_content
-from aicodeagent.functions.internal.reset_test_env import reset_test_env
-from aicodeagent.functions.internal.init_run_session import init_run_session
 from aicodeagent.functions.internal.clear_output_dirs import clear_output_dirs
+from aicodeagent.functions.internal.init_run_session import init_run_session
+from aicodeagent.functions.internal.reset_test_env import reset_test_env
+from aicodeagent.functions.llm_calls.get_file_content import get_file_content
 
 # === CONFIGURATION ===
 TEST_DIR = "__test_env__"
@@ -21,10 +20,12 @@ file_path = os.path.join(TEST_DIR, "hello.txt")
 with open(file_path, "w", encoding="utf-8") as f:
     f.write("Hello, world!\nThis is a test file.")
 
+
 # === HELPERS ===
 def print_test_result(n, description, result):
     print(f"\n▶️ Test {n}: {description}")
     print(result)
+
 
 def read_tail(path, n=20):
     if not os.path.isfile(path):
@@ -32,6 +33,7 @@ def read_tail(path, n=20):
     with open(path, "r", encoding="utf-8", errors="replace") as f:
         lines = f.readlines()
     return "".join(lines[-n:]).rstrip()
+
 
 # === TESTS ===
 print("\n==== get_file_content TESTS ====\n")

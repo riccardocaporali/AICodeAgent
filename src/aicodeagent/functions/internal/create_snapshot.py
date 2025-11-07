@@ -1,4 +1,5 @@
 import os
+
 from aicodeagent.functions.internal.get_project_root import get_project_root
 
 # === Output files live in the project root ===
@@ -16,8 +17,29 @@ BASE_ITEMS = [
 ]
 
 # Exclusions while walking
-EXCLUDED_DIRS = {".git", ".venv", "__pycache__", ".mypy_cache", ".ruff_cache", ".pytest_cache", ".idea", ".vscode"}
-VALID_EXT = (".py", ".md", ".txt", ".log", ".toml", ".cfg", ".ini", ".yml", ".yaml", ".json")
+EXCLUDED_DIRS = {
+    ".git",
+    ".venv",
+    "__pycache__",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".pytest_cache",
+    ".idea",
+    ".vscode",
+}
+VALID_EXT = (
+    ".py",
+    ".md",
+    ".txt",
+    ".log",
+    ".toml",
+    ".cfg",
+    ".ini",
+    ".yml",
+    ".yaml",
+    ".json",
+)
+
 
 def is_text_file(path):
     """Try to open the file as UTF-8. If it fails, treat it as non-text."""
@@ -27,6 +49,7 @@ def is_text_file(path):
         return True
     except Exception:
         return False
+
 
 def explore(path_abs, root_abs, snapshot_out, tree_out, prefix=""):
     """Explore directories and record file tree and snapshots relative to project root."""
@@ -58,13 +81,16 @@ def explore(path_abs, root_abs, snapshot_out, tree_out, prefix=""):
                     snapshot_out.write(f.read())
             tree_out.write(f"{'│   ' * (level + 1)}📄 {filename}\n")
 
+
 def main():
     root = get_project_root(__file__)
     snapshot_path = os.path.join(root, SNAPSHOT_NAME)
     tree_path = os.path.join(root, TREE_NAME)
 
-    with open(snapshot_path, "w", encoding="utf-8") as snapshot_out, \
-         open(tree_path, "w", encoding="utf-8") as tree_out:
+    with (
+        open(snapshot_path, "w", encoding="utf-8") as snapshot_out,
+        open(tree_path, "w", encoding="utf-8") as tree_out,
+    ):
         for item in BASE_ITEMS:
             abs_item = os.path.join(root, item)
             if os.path.exists(abs_item):
@@ -76,6 +102,7 @@ def main():
                 tree_out.write(f"🚫 {msg}\n")
 
     print("✅ Snapshot and directory tree generated at project root.")
+
 
 if __name__ == "__main__":
     main()

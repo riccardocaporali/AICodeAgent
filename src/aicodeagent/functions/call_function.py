@@ -1,15 +1,19 @@
 import traceback
+
 from google.genai import types
+
 
 def call_function(function_call_part, function_dict, verbose=False):
     try:
         if verbose:
-            print(f"Calling function: {function_call_part.name}({function_call_part.args})")
+            print(
+                f"Calling function: {function_call_part.name}({function_call_part.args})"
+            )
         else:
             print(f" - Calling function: {function_call_part.name}")
 
         function_name = function_call_part.name
-        if not function_name in function_dict:
+        if function_name not in function_dict:
             return types.Content(
                 role="tool",
                 parts=[
@@ -37,7 +41,7 @@ def call_function(function_call_part, function_dict, verbose=False):
             "error": {
                 "type": e.__class__.__name__,
                 "message": str(e),
-            }
+            },
         }
 
         # Add traceback if verbose is on

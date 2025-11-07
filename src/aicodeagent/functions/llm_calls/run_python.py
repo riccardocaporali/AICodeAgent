@@ -1,12 +1,16 @@
-import os, sys
+import os
 import subprocess
+import sys
+
 from aicodeagent.functions.internal.get_secure_path import get_secure_path
-from aicodeagent.functions.internal.save_summary_entry import save_summary_entry
 from aicodeagent.functions.internal.save_logs import save_logs
+from aicodeagent.functions.internal.save_summary_entry import save_summary_entry
+
 
 # --- helpers (module-level) ---
 def pack_run_data(stdout, stderr, exit_code):
     return [stdout, stderr, exit_code]
+
 
 def run_python_file(working_directory, file_path, run_id, function_args=None):
     """
@@ -20,21 +24,20 @@ def run_python_file(working_directory, file_path, run_id, function_args=None):
     function_name = "run_python_file"
     # Define summary directory
     base_dir = os.path.abspath(os.path.join("__ai_outputs__", run_id))
-    # Get the file name 
+    # Get the file name
     file_name = "unknown"
-
 
     try:
         # Create the path, check if it is secure and inside an existing directory
         full_path = get_secure_path(working_directory, file_path)
-        # Get the file name 
+        # Get the file name
         file_name = os.path.basename(full_path)
 
         if not os.path.isfile(full_path):
             return f'Error: File not found or is not a regular file: "{file_path}"'
         if not full_path.endswith(".py"):
             return f'Error: "{file_path}" is not a Python file.'
-    
+
         # Run the file, timeout handling
         try:
             output = subprocess.run(
@@ -42,21 +45,19 @@ def run_python_file(working_directory, file_path, run_id, function_args=None):
                 timeout=30,
                 capture_output=True,
                 text=True,
-                cwd=working_directory
+                cwd=working_directory,
             )
-            
+
         except subprocess.TimeoutExpired as te:
             stdout = te.stdout or ""
             stderr = te.stderr or ""
             exit_code = "TIMEOUT"
-            run_data = {
-                "stdout": stdout, 
-                "stderr": stderr, 
-                "exit_code": exit_code
-            }
+            run_data = {"stdout": stdout, "stderr": stderr, "exit_code": exit_code}
 
             # Save log
-            log_line = save_logs(file_name, base_dir, function_name,result="TIMEOUT",details=run_data)
+            log_line = save_logs(
+                file_name, base_dir, function_name, result="TIMEOUT", details=run_data
+            )
 
             # Save summary
             if log_line:
@@ -72,14 +73,12 @@ def run_python_file(working_directory, file_path, run_id, function_args=None):
         stdout = output.stdout or ""
         stderr = output.stderr or ""
         exit_code = output.returncode
-        run_data = {
-            "stdout": stdout, 
-            "stderr": stderr, 
-            "exit_code": exit_code
-        }
+        run_data = {"stdout": stdout, "stderr": stderr, "exit_code": exit_code}
 
         # Save log
-        log_line = save_logs(file_name, base_dir, function_name, result="OK",details=run_data)
+        log_line = save_logs(
+            file_name, base_dir, function_name, result="OK", details=run_data
+        )
 
         # Save summary
         if log_line:
@@ -93,7 +92,9 @@ def run_python_file(working_directory, file_path, run_id, function_args=None):
     except Exception as e:
         details = str(e)
         # Save logs
-        log_line = save_logs(file_name, base_dir, function_name,result="ERROR",details=details)
+        log_line = save_logs(
+            file_name, base_dir, function_name, result="ERROR", details=details
+        )
         # Save summary
         if log_line:
             save_summary_entry(base_dir, function_name, function_args, log_line)

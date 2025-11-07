@@ -1,5 +1,6 @@
 import os
 
+
 def get_project_root(start: str | None = None) -> str:
     """
     Locate the absolute path of the project root.
@@ -16,16 +17,17 @@ def get_project_root(start: str | None = None) -> str:
         cur = os.path.dirname(cur)
 
     while True:
-        if (
-            os.path.exists(os.path.join(cur, "pyproject.toml"))
-            or os.path.exists(os.path.join(cur, ".git"))
+        if os.path.exists(os.path.join(cur, "pyproject.toml")) or os.path.exists(
+            os.path.join(cur, ".git")
         ):
             return cur
 
         parent = os.path.dirname(cur)
         if parent == cur:
             # Fallback path from src/functions/internal/
-            return os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../"))
+            return os.path.abspath(
+                os.path.join(os.path.dirname(__file__), "../../../../")
+            )
         cur = parent
 
 

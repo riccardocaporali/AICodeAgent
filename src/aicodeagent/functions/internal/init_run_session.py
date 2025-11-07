@@ -1,8 +1,10 @@
 import os
 import shutil
+
 from aicodeagent.functions.internal.get_project_root import get_project_root
 
 ENV_OUTPUT_DIR = "AICODEAGENT_OUTPUT_DIR"
+
 
 def _resolve_output_dir(base_dir: str | None = None) -> str:
     """
@@ -18,9 +20,10 @@ def _resolve_output_dir(base_dir: str | None = None) -> str:
         return os.path.abspath(env)
     return os.path.join(get_project_root(__file__), "__ai_outputs__")
 
-def init_run_session(max_runs: int = 10,
-                     max_global_runs: int = 1000,
-                     base_dir: str | None = None) -> str:
+
+def init_run_session(
+    max_runs: int = 10, max_global_runs: int = 1000, base_dir: str | None = None
+) -> str:
     """
     Initialize a new run session:
       - Base directory is resolved to the project root by default.
@@ -67,15 +70,17 @@ def init_run_session(max_runs: int = 10,
 
     # Trim oldest runs beyond `max_runs`
     runs = sorted(
-        d for d in os.listdir(base_dir)
+        d
+        for d in os.listdir(base_dir)
         if os.path.isdir(os.path.join(base_dir, d)) and d.startswith("run_")
     )
     if len(runs) > max_runs:
-        to_delete = runs[:len(runs) - max_runs]
+        to_delete = runs[: len(runs) - max_runs]
         for d in to_delete:
             shutil.rmtree(os.path.join(base_dir, d), ignore_errors=True)
 
     return run_id
+
 
 if __name__ == "__main__":
     rid = init_run_session()
