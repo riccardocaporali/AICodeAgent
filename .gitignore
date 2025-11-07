@@ -18,3 +18,5 @@ code_to_fix/*
 
 # Virtual environments
 .venv
+code_to_fix/*
+\!code_to_fix/.gitkeep
