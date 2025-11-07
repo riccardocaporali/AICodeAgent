@@ -99,10 +99,33 @@ AiCodeAgent/
 
 ## Quick Demo
 
-A ready-to-run demo is included to showcase the agent’s workflow.
+A ready-to-run demo is included to showcase the agent’s workflow.  
+Run the demo script from the project root:
 
 ```bash
 bash demo_quickstart.sh
+```
+
+This script automatically:
+- Cleans the output directories for a fresh session.  
+- Launches a short deterministic run of the agent on the example project under `examples/minirepo/code_to_fix/calculator_bugged/`.  
+- Prints the path of the new session folder inside `__ai_outputs__/run_<id>/`.  
+
+After execution, you can inspect:
+- `diffs/` — preview of code modifications proposed by the agent  
+- `actions.log` — chronological list of all executed internal functions  
+- `llm_message` — raw model reasoning trace (for debugging and transparency)  
+- `run_summary.json` — structured record of all proposals and results  
+- `summary.txt` — human-readable summary of the session  
+
+To apply the proposed fix:
+```bash
+uv run aicodeagent "Apply the proposed fix"
+```
+
+This command reuses the latest `run_summary.json` under  
+`__ai_outputs__/run_<id>/` to apply the generated patch and log final results.
+
 
 ## How It Works
 
@@ -124,6 +147,7 @@ All proposals and metadata are stored in:
 __ai_outputs__/run_<id>/run_summary.json
 (for reproducibility and audit)
 
+```
 
 ## Safety Mechanisms
 
