@@ -1,0 +1,60 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "video_metadata": null,
+            "thought": null,
+            "code_execution_result": null,
+            "executable_code": null,
+            "file_data": null,
+            "function_call": null,
+            "function_response": null,
+            "inline_data": null,
+            "text": "I am a large language model, also known as a conversational AI or chatbot trained to be informative and comprehensive. I am trained on a massive amount of text data and some image, audio and video data.\n\nI can:\n\n*   **Generate text:** I can write different kinds of creative text formats,  like poems, code, scripts, musical pieces, email, letters, etc. I will try my best to fulfill all your requirements.\n*   **Answer questions:** I can answer your questions in an informative way, even if they are open ended, challenging, or strange. I will use my knowledge to provide relevant and accurate responses.\n*   **Translate languages:** I can translate text from one language to another.\n*   **Summarize text:** I can provide concise summaries of long texts.\n*   **Follow instructions:** I can follow your instructions and complete your requests thoughtfully.\n*   **Engage in conversations:** I can participate in dialogues, responding in a way that is both relevant and interesting.\n*   **Provide information:** I can provide information on a wide range of topics, drawing upon the vast amount of data I have been trained on.\n*   **Brainstorm ideas:** I can help you come up with new ideas and explore different possibilities.\n*   **Generate different creative text formats:** I can generate different kinds of creative text formats, like poems, code, scripts, musical pieces, email, letters, etc. I will try my best to fulfill all your requirements.\n\nEssentially, I can process and generate text based on the patterns and information I have learned from the massive dataset I was trained on. My goal is to be helpful and informative to users.\n\nWhat would you like me to do for you?\n"
+          }
+        ],
+        "role": "model"
+      },
+      "citation_metadata": null,
+      "finish_message": null,
+      "token_count": null,
+      "finish_reason": "STOP",
+      "avg_logprobs": -0.27027358156342746,
+      "grounding_metadata": null,
+      "index": null,
+      "logprobs_result": null,
+      "safety_ratings": null
+    }
+  ],
+  "create_time": null,
+  "response_id": null,
+  "model_version": "gemini-2.0-flash-001",
+  "prompt_feedback": null,
+  "usage_metadata": {
+    "cache_tokens_details": null,
+    "cached_content_token_count": null,
+    "candidates_token_count": 358,
+    "candidates_tokens_details": [
+      {
+        "modality": "TEXT",
+        "token_count": 358
+      }
+    ],
+    "prompt_token_count": 5,
+    "prompt_tokens_details": [
+      {
+        "modality": "TEXT",
+        "token_count": 5
+      }
+    ],
+    "thoughts_token_count": null,
+    "tool_use_prompt_token_count": null,
+    "tool_use_prompt_tokens_details": null,
+    "total_token_count": 363,
+    "traffic_type": null
+  },
+  "automatic_function_calling_history": [],
+  "parsed": null
+}

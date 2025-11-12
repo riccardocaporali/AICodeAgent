@@ -1,0 +1,8 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      {"text": "List files in code_to_fix/ using get_files_info"}
+    ]
+  }
+]

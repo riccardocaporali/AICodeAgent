@@ -1,0 +1,60 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "video_metadata": null,
+            "thought": null,
+            "code_execution_result": null,
+            "executable_code": null,
+            "file_data": null,
+            "function_call": null,
+            "function_response": null,
+            "inline_data": null,
+            "text": "Hello there! How can I help you today?\n"
+          }
+        ],
+        "role": "model"
+      },
+      "citation_metadata": null,
+      "finish_message": null,
+      "token_count": null,
+      "finish_reason": "STOP",
+      "avg_logprobs": -0.11504257809032094,
+      "grounding_metadata": null,
+      "index": null,
+      "logprobs_result": null,
+      "safety_ratings": null
+    }
+  ],
+  "create_time": null,
+  "response_id": null,
+  "model_version": "gemini-2.0-flash-001",
+  "prompt_feedback": null,
+  "usage_metadata": {
+    "cache_tokens_details": null,
+    "cached_content_token_count": null,
+    "candidates_token_count": 11,
+    "candidates_tokens_details": [
+      {
+        "modality": "TEXT",
+        "token_count": 11
+      }
+    ],
+    "prompt_token_count": 1,
+    "prompt_tokens_details": [
+      {
+        "modality": "TEXT",
+        "token_count": 1
+      }
+    ],
+    "thoughts_token_count": null,
+    "tool_use_prompt_token_count": null,
+    "tool_use_prompt_tokens_details": null,
+    "total_token_count": 12,
+    "traffic_type": null
+  },
+  "automatic_function_calling_history": [],
+  "parsed": null
+}
