@@ -8,6 +8,7 @@ authors = [{ name = "Riccardo Caporali" }]
 license = { text = "MIT" }
 dependencies = [
     "google-genai==1.12.1",
+    "pytest>=9.0.1",
     "python-dotenv==1.1.0",
 ]
 [tool.isort]
