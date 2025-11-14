@@ -25,47 +25,29 @@ Each session generates:
 ## System Architecture
 ```text
 AiCodeAgent/
+├── src/aicodeagent/
+│   ├── main.py
+│   ├── cli.py
+│   ├── pipeline.py
+│   ├── llm_client.py
+│   │
+│   ├── prompts/
+│   │   └── system_prompt.py
+│   │
+│   ├── functions/
+│   │   ├── call_function.py
+│   │   ├── functions_schemas.py
+│   │   │
+│   │   ├── fs/           # File-system operations
+│   │   ├── core/         # Snapshots, diffs, save utilities
+│   │   ├── pipeline/     # Init, summary, gating
+│   │   └── llm_calls/    # Tools exposed to the LLM
 │
-├── src/
-│   └── aicodeagent/
-│       ├── main.py                               # Main LLM loop (prompt, throttling/gating, summary)
-│       │
-│       ├── functions/
-│       │   ├── functions_schemas.py              # Function schemas exposed to the model
-│       │   ├── call_function.py                  # Dispatcher for function execution
-│       │   │
-│       │   ├── llm_calls/                        # Tools callable by the LLM (function-calling)
-│       │   │   ├── conclude_edit.py
-│       │   │   ├── get_file_content.py
-│       │   │   ├── get_files_info.py
-│       │   │   ├── propose_changes.py
-│       │   │   └── run_python.py
-│       │   │
-│       │   └── internal/                         # Internal helpers (IO, persistence, guards, utils)
-│       │       ├── clear_output_dirs.py
-│       │       ├── get_secure_path.py
-│       │       ├── get_versioned_path.py
-│       │       ├── init_run_session.py
-│       │       ├── make_human_readable.py
-│       │       ├── prev_proposal.py
-│       │       ├── prev_run_summary_path.py
-│       │       ├── reset_test_env.py
-│       │       ├── save_backup.py
-│       │       ├── save_diffs.py
-│       │       ├── save_file.py
-│       │       ├── save_logs.py
-│       │       ├── save_run_info.py
-│       │       └── save_summary_entry.py
-├── code_to_fix/                          # Sandboxed workspace analyzed by the agent
-│
-├── examples/
-│   └── minirepo/
-│       └── code_to_fix/
-│           └── calculator_bugged/        # Demo project used in quickstart
+├── code_to_fix/          # Sandbox
+├── examples/             # Demo repository
+├── tests/                # Unit, integration, e2e
 │
 ├── ai_outputs/                           # Structured outputs (logs, backups, summaries, diffs)
-│
-└── tests/                                # Pytest-based test suite
 
 ```
 ## Setup

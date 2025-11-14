@@ -1,11 +1,11 @@
 import difflib
 import os
 
-from aicodeagent.functions.internal.get_project_root import get_project_root
-from aicodeagent.functions.internal.save_backup import save_backup
-from aicodeagent.functions.internal.save_diffs import save_diffs
-from aicodeagent.functions.internal.save_logs import save_logs
-from aicodeagent.functions.internal.save_summary_entry import save_summary_entry
+from aicodeagent.functions.core.save_backup import save_backup
+from aicodeagent.functions.core.save_diffs import save_diffs
+from aicodeagent.functions.core.save_logs import save_logs
+from aicodeagent.functions.core.save_summary_entry import save_summary_entry
+from aicodeagent.functions.fs.get_project_root import get_project_root
 
 
 def save_file(

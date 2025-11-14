@@ -10,6 +10,7 @@ wheels/
 .python-version
 uv.lock
 __ai_outputs__
+__demo_sandbox__/
 __test_env__
 TO_DO.txt
 project_snapshot.txt

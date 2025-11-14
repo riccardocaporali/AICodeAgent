@@ -1,8 +1,8 @@
 import os
 
-from aicodeagent.functions.internal.get_project_root import get_project_root
-from aicodeagent.functions.internal.get_secure_path import get_secure_path
-from aicodeagent.functions.internal.get_versioned_path import get_versioned_path
+from aicodeagent.functions.core.get_secure_path import get_secure_path
+from aicodeagent.functions.core.get_versioned_path import get_versioned_path
+from aicodeagent.functions.fs.get_project_root import get_project_root
 
 
 def save_diffs(diff_dir=None, diff_content=None, file_name="diff.txt"):

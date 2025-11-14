@@ -1,5 +1,7 @@
 uv run python -m aicodeagent.functions.internal.clear_output_dirs
 
+echo "[demo] Using an isolated sandbox copy of the demo repository."
+
 uv run aicodeagent "Analyze the calculator app and if needed propose fixes" --demo
 
 RUN_DIR=$(ls -td __ai_outputs__/run_* | head -n 1)

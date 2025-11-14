@@ -4,7 +4,7 @@ import os
 import re
 import time
 
-from aicodeagent.functions.internal.get_project_root import get_project_root
+from aicodeagent.functions.fs.get_project_root import get_project_root
 
 
 def save_run_info(messages, run_id, proposed_content=None, extra_data=None):

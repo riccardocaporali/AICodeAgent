@@ -1,9 +1,9 @@
 import os
 
-from aicodeagent.functions.internal.get_secure_path import get_secure_path
-from aicodeagent.functions.internal.save_file import save_file
-from aicodeagent.functions.internal.save_logs import save_logs
-from aicodeagent.functions.internal.save_summary_entry import save_summary_entry
+from aicodeagent.functions.core.get_secure_path import get_secure_path
+from aicodeagent.functions.core.save_file import save_file
+from aicodeagent.functions.core.save_logs import save_logs
+from aicodeagent.functions.core.save_summary_entry import save_summary_entry
 
 
 def conclude_edit(

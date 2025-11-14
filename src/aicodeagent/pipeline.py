@@ -1,5 +1,6 @@
 # ---- IMPORTS & INTERNALS -----------------------------------------------------
 import re
+import shutil
 import sys
 import time
 
@@ -8,10 +9,10 @@ from google.genai import types
 from aicodeagent.functions import functions_schemas as schemas
 from aicodeagent.functions.call_function import call_function
 from aicodeagent.functions.functions_schemas import function_dict
-from aicodeagent.functions.internal.emit import emit
-from aicodeagent.functions.internal.init_run_session import init_run_session
-from aicodeagent.functions.internal.prev_proposal import prev_proposal
-from aicodeagent.functions.internal.prev_run_summary_path import prev_run_summary_path
+from aicodeagent.functions.pipeline.emit import emit
+from aicodeagent.functions.pipeline.init_run_session import init_run_session
+from aicodeagent.functions.pipeline.prev_proposal import prev_proposal
+from aicodeagent.functions.pipeline.prev_run_summary_path import prev_run_summary_path
 from aicodeagent.llm_client import RealLLMClient
 from aicodeagent.prompts.system_prompt import model, system_prompt
 
@@ -56,6 +57,16 @@ def run_pipeline(prompt, llm, options, project_root):
         fn_decls.append(schemas.schema_conclude_edit)
 
     available_functions = types.Tool(function_declarations=fn_decls)
+
+    # ---- DEMO SANDBOX COPY -------------------------------------------------------
+    if options.demo:
+        demo_src = project_root / "examples/minirepo"
+        demo_dst = project_root / "__demo_sandbox__"
+
+        if demo_dst.exists():
+            shutil.rmtree(demo_dst)
+
+        shutil.copytree(demo_src, demo_dst)
 
     # ---- GUARDS & TRACKERS INIT -------------------------------
     proposed_content = None
@@ -196,7 +207,9 @@ def run_pipeline(prompt, llm, options, project_root):
                     if options.demo:
                         base_dir = (
                             project_root
-                            / "examples/minirepo/code_to_fix/calculator_bugged"
+                            / "__demo_sandbox__"
+                            / "code_to_fix"
+                            / "calculator_bugged"
                         )
                     else:
                         base_dir = project_root / "code_to_fix"

@@ -1,8 +1,6 @@
 import os
 
-from aicodeagent.functions.internal.make_human_readable_diff import (
-    make_human_readable_diff,
-)
+from aicodeagent.functions.core.make_human_readable_diff import make_human_readable_diff
 
 
 def save_summary_entry(

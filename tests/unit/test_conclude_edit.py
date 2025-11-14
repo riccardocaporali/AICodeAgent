@@ -2,10 +2,10 @@ import os
 import sys
 from datetime import datetime
 
-from aicodeagent.functions.internal.clear_output_dirs import clear_output_dirs
-from aicodeagent.functions.internal.init_run_session import init_run_session
-from aicodeagent.functions.internal.reset_test_env import reset_test_env
+from aicodeagent.functions.fs.clear_output_dirs import clear_output_dirs
+from aicodeagent.functions.fs.reset_test_env import reset_test_env
 from aicodeagent.functions.llm_calls.conclude_edit import conclude_edit
+from aicodeagent.functions.pipeline.init_run_session import init_run_session
 
 TEST_DIR = "__test_env__"
 reset_test_env(TEST_DIR)

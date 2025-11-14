@@ -6,9 +6,9 @@ import sys
 import time
 from pathlib import Path
 
-from aicodeagent.functions.internal.get_project_root import get_project_root
-from aicodeagent.functions.internal.options import PipelineOptions
-from aicodeagent.functions.internal.save_run_info import save_run_info
+from aicodeagent.functions.core.save_run_info import save_run_info
+from aicodeagent.functions.fs.get_project_root import get_project_root
+from aicodeagent.functions.pipeline.options import PipelineOptions
 from aicodeagent.llm_client import FileLLMClient, RealLLMClient
 from aicodeagent.pipeline import run_pipeline
 

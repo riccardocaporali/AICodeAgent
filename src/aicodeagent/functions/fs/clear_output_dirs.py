@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from aicodeagent.functions.internal.get_project_root import get_project_root
+from aicodeagent.functions.fs.get_project_root import get_project_root
 
 
 def clear_output_dirs():
@@ -29,9 +29,13 @@ def clear_output_dirs():
     if os.path.exists(counter_file):
         with open(counter_file, "w", encoding="utf-8") as f:
             f.write("0")
+    # Remove demo sandbox if present
+    demo_dir = os.path.join(get_project_root(__file__), "__demo_sandbox__")
+    if os.path.exists(demo_dir):
+        shutil.rmtree(demo_dir, ignore_errors=True)
 
     print(
-        f"\n✅ Clear finished. Run directories removed: {cleared}, run counter reset to 0.\n",
+        f"\n✅ Clear finished. Run directories removed: {cleared}, removed demo sandbox (__demo_sandbox__), run counter reset to 0.\n",
         flush=True,
     )
 

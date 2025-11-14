@@ -1,10 +1,10 @@
 import os
 import sys
 
-from aicodeagent.functions.internal.clear_output_dirs import clear_output_dirs
-from aicodeagent.functions.internal.init_run_session import init_run_session
-from aicodeagent.functions.internal.reset_test_env import reset_test_env
+from aicodeagent.functions.fs.clear_output_dirs import clear_output_dirs
+from aicodeagent.functions.fs.reset_test_env import reset_test_env
 from aicodeagent.functions.llm_calls.run_python import run_python_file
+from aicodeagent.functions.pipeline.init_run_session import init_run_session
 
 # === CONFIGURATION ===
 TEST_DIR = "__test_env__"
