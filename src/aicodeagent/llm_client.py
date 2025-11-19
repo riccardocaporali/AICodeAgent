@@ -1,7 +1,6 @@
 import hashlib
 import json
 import os
-import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -26,8 +25,12 @@ class RealLLMClient(LLMClient):
 
         # Fail fast if API key is missing
         if not api_key:
-            print("Missing GEMINI_API_KEY in environment. Aborting.", file=sys.stderr)
-            sys.exit(1)
+            raise RuntimeError(
+                "Missing GEMINI_API_KEY. Create a .env file containing:\n"
+                "    GEMINI_API_KEY=your_api_key_here\n"
+                "Generate an API key here:\n"
+                "https://aistudio.google.com/app/apikey"
+            )
 
         # Initialize the official Google GenAI client
         self.client = genai.Client(api_key=api_key)

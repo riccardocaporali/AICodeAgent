@@ -34,6 +34,8 @@ AiCodeAgent/
 │   ├── prompts/
 │   │   └── system_prompt.py
 │   │
+│   ├── tools/
+│   │
 │   ├── functions/
 │   │   ├── call_function.py
 │   │   ├── functions_schemas.py
@@ -63,12 +65,21 @@ AiCodeAgent/
 
     ```bash
     GEMINI_API_KEY=your_api_key_here
-    ```
+    ```   
+    You can generate an API key directly here:
+    https://aistudio.google.com/app/apikey
 
 3. **Install dependencies using uv**
 
     ```bash
     uv sync
+    ```
+    
+3. **Run the test suite (recommended)**
+
+    Before using the agent on your own code, verify the system with the full e2e test suite:
+    ```bash
+    uv run pytest -s
     ```
 
 4. **Run a quick test**
