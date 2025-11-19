@@ -5,6 +5,7 @@ import sys
 from aicodeagent.functions.core.get_secure_path import get_secure_path
 from aicodeagent.functions.core.save_logs import save_logs
 from aicodeagent.functions.core.save_summary_entry import save_summary_entry
+from aicodeagent.functions.fs.get_project_root import get_project_root
 
 
 # --- helpers (module-level) ---
@@ -12,7 +13,9 @@ def pack_run_data(stdout, stderr, exit_code):
     return [stdout, stderr, exit_code]
 
 
-def run_python_file(working_directory, file_path, run_id, function_args=None):
+def run_python_file(
+    working_directory, file_path, run_id, function_args=None, output_root=None
+):
     """
     Securely runs a Python file within the project sandbox.
 
@@ -23,7 +26,10 @@ def run_python_file(working_directory, file_path, run_id, function_args=None):
     # Function name
     function_name = "run_python_file"
     # Define summary directory
-    base_dir = os.path.abspath(os.path.join("__ai_outputs__", run_id))
+    project_root = (
+        str(output_root) if output_root is not None else get_project_root(__file__)
+    )
+    base_dir = os.path.join(project_root, "__ai_outputs__", run_id)
     # Get the file name
     file_name = "unknown"
 

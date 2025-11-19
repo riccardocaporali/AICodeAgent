@@ -22,7 +22,10 @@ def _resolve_output_dir(base_dir: str | None = None) -> str:
 
 
 def init_run_session(
-    max_runs: int = 10, max_global_runs: int = 1000, base_dir: str | None = None
+    max_runs: int = 10,
+    max_global_runs: int = 1000,
+    base_dir: str | None = None,
+    output_root: str | None = None,
 ) -> str:
     """
     Initialize a new run session:
@@ -33,7 +36,10 @@ def init_run_session(
 
     Returns: run_id
     """
-    base_dir = _resolve_output_dir(base_dir)
+    if output_root:
+        base_dir = os.path.join(output_root, "__ai_outputs__")
+    else:
+        base_dir = _resolve_output_dir(base_dir)
     os.makedirs(base_dir, exist_ok=True)
 
     counter_file = os.path.join(base_dir, "run_counter.txt")

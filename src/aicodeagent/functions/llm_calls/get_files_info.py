@@ -3,9 +3,12 @@ import os
 from aicodeagent.functions.core.get_secure_path import get_secure_path
 from aicodeagent.functions.core.save_logs import save_logs
 from aicodeagent.functions.core.save_summary_entry import save_summary_entry
+from aicodeagent.functions.fs.get_project_root import get_project_root
 
 
-def get_files_info(working_directory, run_id, directory=None, function_args=None):
+def get_files_info(
+    working_directory, run_id, directory=None, function_args=None, output_root=None
+):
     """
     Lists all files and directories inside the specified target folder.
 
@@ -17,7 +20,10 @@ def get_files_info(working_directory, run_id, directory=None, function_args=None
     # Function name
     function_name = "get_files_info"
     # Define summary directory
-    base_dir = os.path.abspath(os.path.join("__ai_outputs__", run_id))
+    project_root = (
+        str(output_root) if output_root is not None else get_project_root(__file__)
+    )
+    base_dir = os.path.join(project_root, "__ai_outputs__", run_id)
     # Get the file name
     file_name = "unknown"
 

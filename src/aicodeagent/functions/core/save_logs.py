@@ -1,8 +1,6 @@
 import os
 from datetime import datetime
 
-from aicodeagent.functions.fs.get_project_root import get_project_root
-
 
 # Function to cut log after MAX characters
 def _clip(s):
@@ -25,9 +23,6 @@ def save_logs(
     Save a log entry under <PROJECT_ROOT>/__ai_outputs__/<run_id>/actions.log
     Logs all tool operations, file actions, and results.
     """
-    project_root = get_project_root(__file__)
-    if not os.path.isabs(log_dir):
-        log_dir = os.path.join(project_root, "__ai_outputs__", log_dir)
 
     os.makedirs(log_dir, exist_ok=True)
     log_path = os.path.join(log_dir, "actions.log")
@@ -43,16 +38,12 @@ def save_logs(
                     f"dry-run propose changes to {file_name} (no file written, diff only)\n"
                     f" Result: {result}\n"
                 )
-                if details:
-                    log_line += f"   + details: {details}\n"
             else:
                 log_line = (
                     f"\n[{timestamp}] Function {function_name}: "
                     f"modified {file_name} (backup: yes, diff: yes)\n"
                     f" Result: {result}\n"
                 )
-                if details:
-                    log_line += f"   + details: {details}\n"
         elif content is not None:
             if dry_run:
                 log_line = (
@@ -60,25 +51,20 @@ def save_logs(
                     f"dry-run propose creation of {file_name} (not written, diff only)\n"
                     f" Result: {result}\n"
                 )
-                if details:
-                    log_line += f"   + details: {details}\n"
             else:
                 log_line = (
                     f"\n[{timestamp}] Function {function_name}: "
                     f"created {file_name}\n"
                     f" Result: {result}\n"
                 )
-                if details:
-                    log_line += f"   + details: {details}\n"
         else:
             log_line = (
                 f"\n[{timestamp}] Function {function_name}: "
                 f"unknown action on {file_name}\n"
                 f" Result: {result}\n"
             )
-            if details:
-                log_line += f"   + details: {details}\n"
-
+        if details:
+            log_line += f"   + details: {details}\n"
     elif function_name == "get_file_content":
         log_line = (
             f"\n[{timestamp}] Function {function_name}: "

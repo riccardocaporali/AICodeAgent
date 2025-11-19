@@ -4,13 +4,19 @@ from aicodeagent.functions.core.get_secure_path import get_secure_path
 from aicodeagent.functions.core.save_file import save_file
 from aicodeagent.functions.core.save_logs import save_logs
 from aicodeagent.functions.core.save_summary_entry import save_summary_entry
+from aicodeagent.functions.fs.get_project_root import get_project_root
 
 
-def propose_changes(working_directory, file_path, content, run_id, function_args=None):
+def propose_changes(
+    working_directory, file_path, content, run_id, function_args=None, output_root=None
+):
     # Function name
     function_name = "propose_changes"
     # Define summary directory
-    base_dir = os.path.abspath(os.path.join("__ai_outputs__", run_id))
+    project_root = (
+        str(output_root) if output_root is not None else get_project_root(__file__)
+    )
+    base_dir = os.path.join(project_root, "__ai_outputs__", run_id)
     # Get the file name
     file_name = "unknown"
 
@@ -25,6 +31,7 @@ def propose_changes(working_directory, file_path, content, run_id, function_args
                 function_args,
                 source_path=full_path,
                 content=content,
+                output_root=output_root,
             )
             return f'Save proposed changes to "{file_path}" in __ai_outputs__ ({len(content)} characters to be written)'
 
@@ -36,6 +43,7 @@ def propose_changes(working_directory, file_path, content, run_id, function_args
                 function_args,
                 file_name=file_name,
                 content=content,
+                output_root=output_root,
             )
             return f'Save proposed creation of "{file_path}" in __ai_outputs__ ({len(content)} characters to be written)'
 

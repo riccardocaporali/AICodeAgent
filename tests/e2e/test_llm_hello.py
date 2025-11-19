@@ -18,7 +18,9 @@ def test_llm_hello(tmp_path: Path):
 
     # 2) Initialize real LLM + pipeline options
     llm = RealLLMClient()
-    options = PipelineOptions(verbose=False, I_O=False, reset=True, demo=False)
+    options = PipelineOptions(
+        verbose=False, I_O=False, reset=True, demo=False, test=True
+    )
 
     # 3) Run the pipeline
     result = run_pipeline(
@@ -37,7 +39,7 @@ def test_llm_hello(tmp_path: Path):
         run_id,
         proposed_content,
         extra_data,
-        project_root_override=project_root,
+        output_root=project_root,
     )
 
     # 4) Minimal checks

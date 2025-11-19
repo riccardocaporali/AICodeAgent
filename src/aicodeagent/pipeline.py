@@ -16,11 +16,11 @@ from aicodeagent.llm_client import RealLLMClient
 from aicodeagent.prompts.system_prompt import model, system_prompt
 
 
-def run_pipeline(prompt, llm, options, project_root):
+def run_pipeline(prompt, llm, options, project_root, output_root=None):
 
     # ---- RUN SESSION INIT --------------------------------------------------------
     # - Create run_id only after validating arguments (avoid empty/garbage runs)
-    run_id = init_run_session()
+    run_id = init_run_session(output_root=output_root)
 
     # ---- PREVIOUS RUN CONTEXT BOOTSTRAP -----------------------------------------
     prev_summary_path = prev_run_summary_path(run_id)
@@ -57,8 +57,10 @@ def run_pipeline(prompt, llm, options, project_root):
 
     available_functions = types.Tool(function_declarations=fn_decls)
 
-    # ---- DEMO SANDBOX COPY -------------------------------------------------------
+    # ---- DEMO & TEST SANDBOX COPY -------------------------------------------------------
     if options.demo:
+        """Copy the minirepo inside the demo sandbox, this way the actual changes and analyzes are done in a copy
+        of calculator bugged and not in teh actual one"""
         demo_src = project_root / "examples/minirepo"
         demo_dst = project_root / "__demo_sandbox__"
 
@@ -66,6 +68,9 @@ def run_pipeline(prompt, llm, options, project_root):
             shutil.rmtree(demo_dst)
 
         shutil.copytree(demo_src, demo_dst)
+    elif options.test:
+        # test env already prepared by create_test_env()
+        pass
 
     # ---- GUARDS & TRACKERS INIT -------------------------------
     proposed_content = None
@@ -211,12 +216,14 @@ def run_pipeline(prompt, llm, options, project_root):
                             / "calculator_bugged"
                         )
                     else:
+                        """In case of a test project root = tmp_path"""
                         base_dir = project_root / "code_to_fix"
                     function_call_part.args["working_directory"] = str(
                         base_dir / original_dir
                     )
                     # attach run_id
                     function_call_part.args["run_id"] = run_id
+                    function_call_part.args["output_root"] = output_root
                     # inject deterministic inputs for conclude_edit from last_prop (no file I/O here)
                     if function_call_part.name == "conclude_edit" and not options.reset:
                         if not last_prop:

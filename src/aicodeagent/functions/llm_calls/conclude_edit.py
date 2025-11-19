@@ -4,15 +4,25 @@ from aicodeagent.functions.core.get_secure_path import get_secure_path
 from aicodeagent.functions.core.save_file import save_file
 from aicodeagent.functions.core.save_logs import save_logs
 from aicodeagent.functions.core.save_summary_entry import save_summary_entry
+from aicodeagent.functions.fs.get_project_root import get_project_root
 
 
 def conclude_edit(
-    working_directory, file_path, content, run_id, function_args=None, dry_run=False
+    working_directory,
+    file_path,
+    content,
+    run_id,
+    function_args=None,
+    dry_run=False,
+    output_root=None,
 ):
     # Function name
     function_name = "conclude_edit"
     # Define summary directory
-    base_dir = os.path.abspath(os.path.join("__ai_outputs__", run_id))
+    project_root = (
+        str(output_root) if output_root is not None else get_project_root(__file__)
+    )
+    base_dir = os.path.join(project_root, "__ai_outputs__", run_id)
     # Get the file name
     file_name = "unknown"
 
@@ -29,6 +39,7 @@ def conclude_edit(
                 dry_run=dry_run,
                 source_path=full_path,
                 content=content,
+                output_root=output_root,
             )
             if dry_run:
                 return (
@@ -47,6 +58,7 @@ def conclude_edit(
                 dry_run=dry_run,
                 file_name=file_name,
                 content=content,
+                output_root=output_root,
             )
             if dry_run:
                 return (

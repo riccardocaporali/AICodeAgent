@@ -8,7 +8,7 @@ from aicodeagent.functions.fs.get_project_root import get_project_root
 
 
 def save_run_info(
-    messages, run_id, proposed_content=None, extra_data=None, project_root_override=None
+    messages, run_id, proposed_content=None, extra_data=None, output_root=None
 ):
     """
     Build a compact, structured ledger of the last run from `messages`
@@ -24,8 +24,8 @@ def save_run_info(
     ):
         extra_data, proposed_content = proposed_content, None
 
-    if project_root_override is not None:
-        project_root = Path(project_root_override)
+    if output_root is not None:
+        project_root = Path(output_root)
     else:
         # default behaviour for main
         project_root = Path(get_project_root(__file__))

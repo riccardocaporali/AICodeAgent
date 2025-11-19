@@ -4,13 +4,15 @@ from aicodeagent.functions.core.make_human_readable_diff import make_human_reada
 
 
 def save_summary_entry(
-    summary_dir, function_name, function_args, log_line=None, diff_lines=None
+    base_dir,
+    function_name,
+    function_args,
+    log_line=None,
+    diff_lines=None,
 ):
-    # Define the summary directory (with optional run_id subfolder)
-    os.makedirs(summary_dir, exist_ok=True)
 
-    # Define the summary file path
-    summary_path = os.path.join(summary_dir, "summary.txt")
+    os.makedirs(base_dir, exist_ok=True)
+    summary_path = os.path.join(base_dir, "summary.txt")
 
     # Fix indentation
     clean = log_line.lstrip("\n").rstrip("\n")

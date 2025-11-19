@@ -7,3 +7,4 @@ class PipelineOptions:
     I_O: bool
     reset: bool
     demo: bool
+    test: bool
