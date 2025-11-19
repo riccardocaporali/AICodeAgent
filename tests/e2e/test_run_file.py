@@ -1,4 +1,4 @@
-# tests/e2e/test_llm_hello.py
+# tests/e2e/test_run_file.py
 from pathlib import Path
 
 import pytest
@@ -22,7 +22,7 @@ def test_llm_hello(tmp_path: Path):
 
     # 3) Run the pipeline
     result = run_pipeline(
-        prompt="Say hello",
+        prompt="Run the file calculator_bugged/main.py exactly as is. Use this exact path: calculator_bugged/main.py",
         llm=llm,
         options=options,
         project_root=project_root,
@@ -40,8 +40,13 @@ def test_llm_hello(tmp_path: Path):
         project_root_override=project_root,
     )
 
-    # 4) Minimal checks
-    run_dir = project_root / "__ai_outputs__" / result["run_id"]
-    assert run_dir.exists()
-    assert (run_dir / "run_summary.json").exists()
-    assert result["messages"]
+    # 4) Check that the LLM actually attempted to run the calculator app
+
+    joined = "\n".join(str(m) for m in messages)
+    # Tool is called
+    assert "run_python_file" in joined
+
+    # Generated the correct output
+    assert "Calculator App" in joined
+    assert 'Usage: python main.py "' in joined
+    assert 'Example: python main.py "3 + 5"' in joined

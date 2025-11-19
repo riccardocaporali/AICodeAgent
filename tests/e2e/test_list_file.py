@@ -1,4 +1,4 @@
-# tests/e2e/test_llm_hello.py
+# tests/e2e/test_list_file.py
 from pathlib import Path
 
 import pytest
@@ -22,7 +22,7 @@ def test_llm_hello(tmp_path: Path):
 
     # 3) Run the pipeline
     result = run_pipeline(
-        prompt="Say hello",
+        prompt="List all files of calculator_bugged",
         llm=llm,
         options=options,
         project_root=project_root,
@@ -41,7 +41,15 @@ def test_llm_hello(tmp_path: Path):
     )
 
     # 4) Minimal checks
-    run_dir = project_root / "__ai_outputs__" / result["run_id"]
+    run_dir = project_root / "__ai_outputs__" / run_id
     assert run_dir.exists()
-    assert (run_dir / "run_summary.json").exists()
-    assert result["messages"]
+
+    summary = run_dir / "run_summary.json"
+    assert summary.exists()
+
+    # check that messages contain the file listing
+    joined = "\n".join(str(m) for m in messages)
+    assert "calculator_bugged" in joined
+    assert "lorem.txt" in joined
+    assert "main.py" in joined
+    assert "tests.py" in joined

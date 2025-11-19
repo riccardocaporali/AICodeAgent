@@ -1,4 +1,4 @@
-# tests/e2e/test_llm_hello.py
+# tests/e2e/test_gating_directory_query.py
 from pathlib import Path
 
 import pytest
@@ -11,6 +11,10 @@ from aicodeagent.tools.create_test_env import create_test_env
 
 pytestmark = pytest.mark.llm
 
+"""Verify the pipeline’s directory-query gating. This test ensures that when the model asks for the project root,
+the pipeline intercepts the request, injects the predefined hint ('code_to_fix/'), and then resumes the loop correctly
+without errors."""
+
 
 def test_llm_hello(tmp_path: Path):
     # 1) Create isolated project_root
@@ -22,7 +26,7 @@ def test_llm_hello(tmp_path: Path):
 
     # 3) Run the pipeline
     result = run_pipeline(
-        prompt="Say hello",
+        prompt="Where is the project root directory?",
         llm=llm,
         options=options,
         project_root=project_root,
@@ -40,8 +44,9 @@ def test_llm_hello(tmp_path: Path):
         project_root_override=project_root,
     )
 
-    # 4) Minimal checks
-    run_dir = project_root / "__ai_outputs__" / result["run_id"]
-    assert run_dir.exists()
-    assert (run_dir / "run_summary.json").exists()
-    assert result["messages"]
+    # 4) Check that the LLM actually attempted to run the calculator app
+
+    joined = "\n".join(str(m) for m in messages)
+
+    assert "The project root is 'code_to_fix/'" in joined
+    assert "run_python_file" in joined or "get_files_info" in joined

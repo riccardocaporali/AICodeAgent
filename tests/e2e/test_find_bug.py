@@ -1,4 +1,4 @@
-# tests/e2e/test_llm_hello.py
+# tests/e2e/test_find_bug.py
 from pathlib import Path
 
 import pytest
@@ -22,7 +22,7 @@ def test_llm_hello(tmp_path: Path):
 
     # 3) Run the pipeline
     result = run_pipeline(
-        prompt="Say hello",
+        prompt="Analyze the calculator application and find any logical bug.",
         llm=llm,
         options=options,
         project_root=project_root,
@@ -40,8 +40,21 @@ def test_llm_hello(tmp_path: Path):
         project_root_override=project_root,
     )
 
-    # 4) Minimal checks
-    run_dir = project_root / "__ai_outputs__" / result["run_id"]
-    assert run_dir.exists()
-    assert (run_dir / "run_summary.json").exists()
-    assert result["messages"]
+    # 4) Check that the LLM actually attempted to run the calculator app
+
+    joined = "\n".join(str(m) for m in messages)
+
+    assert "get_file_content" in joined
+    assert "calculator_bugged" in joined
+
+    # Check if bug is found
+    assert "precedence" in joined and ("+" in joined) and ("-" in joined)
+    assert (
+        "bug" in joined.lower()
+        or "wrong" in joined.lower()
+        or "incorrect" in joined.lower()
+        or "error" in joined.lower()
+        or "fix" in joined.lower()
+        or "issue" in joined.lower()
+        or "problem" in joined.lower()
+    )

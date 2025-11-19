@@ -1,13 +1,15 @@
 import hashlib
 import json
-import os
 import re
 import time
+from pathlib import Path
 
 from aicodeagent.functions.fs.get_project_root import get_project_root
 
 
-def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
+def save_run_info(
+    messages, run_id, proposed_content=None, extra_data=None, project_root_override=None
+):
     """
     Build a compact, structured ledger of the last run from `messages`
     and save two files under <PROJECT_ROOT>/__ai_outputs__/run_<id>/:
@@ -22,9 +24,14 @@ def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
     ):
         extra_data, proposed_content = proposed_content, None
 
-    project_root = get_project_root(__file__)
-    base_dir = os.path.join(project_root, "__ai_outputs__", run_id)
-    os.makedirs(base_dir, exist_ok=True)
+    if project_root_override is not None:
+        project_root = Path(project_root_override)
+    else:
+        # default behaviour for main
+        project_root = Path(get_project_root(__file__))
+
+    base_dir = project_root / "__ai_outputs__" / run_id
+    base_dir.mkdir(parents=True, exist_ok=True)
 
     def brief_text(s, n=160):
         s = (s or "").strip().replace("\r", "")
@@ -208,11 +215,13 @@ def save_run_info(messages, run_id, proposed_content=None, extra_data=None):
         "assistant": {"last_text": brief_text(last_text, 2000)},
     }
 
-    json_path = os.path.join(base_dir, "run_summary.json")
+    json_path = base_dir / "run_summary.json"
+
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
 
-    txt_path = os.path.join(base_dir, "llm_message")
+    txt_path = base_dir / "llm_message"
+
     with open(txt_path, "w", encoding="utf-8") as f:
         f.write(last_text or "")
 

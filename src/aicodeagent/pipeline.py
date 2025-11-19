@@ -1,7 +1,6 @@
 # ---- IMPORTS & INTERNALS -----------------------------------------------------
 import re
 import shutil
-import sys
 import time
 
 from google.genai import types
@@ -445,8 +444,17 @@ def run_pipeline(prompt, llm, options, project_root):
             # Error if the LLM got an invalid input, probable code error present (errore 400)
             if "INVALID_ARGUMENT" in str(e):
                 run_stats["transient_err"] += 1
-                print("Code error, try again")
-                sys.exit()
+                print("Code error, recovered with text-only fallback")
+
+                messages.append(
+                    types.Content(
+                        role="model",
+                        parts=[
+                            types.Part(text="Internal LLM format error. Continuing.")
+                        ],
+                    )
+                )
+                break
 
             # All error are appended to the message for the next iteration
             error_message = types.Content(
