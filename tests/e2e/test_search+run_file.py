@@ -56,3 +56,11 @@ def test_seach_run_file(tmp_path: Path):
     # Output of the script
     assert "Calculator App" in joined
     assert "Usage: python main.py" in joined
+
+    try:
+        assert "get_files_info" in joined
+    except AssertionError:
+        # Soft fail se Gemini non ha risposto per rate limit
+        if "Request per minute limit exceeded" in joined:
+            pytest.xfail("Soft fail: LLM rate-limited during test.")
+        raise

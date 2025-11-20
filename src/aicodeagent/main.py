@@ -64,6 +64,7 @@ def main():
         I_O=args.I_O,
         reset=args.reset,
         demo=args.demo,
+        test=False,
     )
     project_root = Path(get_project_root(__file__))
 
