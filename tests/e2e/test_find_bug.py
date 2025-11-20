@@ -12,7 +12,7 @@ from aicodeagent.tools.create_test_env import create_test_env
 pytestmark = pytest.mark.llm
 
 
-def test_llm_hello(tmp_path: Path):
+def test_find_bug(tmp_path: Path):
     # 1) Create isolated project_root
     project_root = create_test_env(tmp_path)
 

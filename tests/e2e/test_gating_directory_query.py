@@ -16,7 +16,7 @@ the pipeline intercepts the request, injects the predefined hint ('code_to_fix/'
 without errors."""
 
 
-def test_llm_hello(tmp_path: Path):
+def test_gating_directory_query(tmp_path: Path):
     # 1) Create isolated project_root
     project_root = create_test_env(tmp_path)
 
