@@ -6,11 +6,20 @@ readme = "README.md"
 requires-python = ">=3.12"
 authors = [{ name = "Riccardo Caporali" }]
 license = { text = "MIT" }
+
 dependencies = [
     "google-genai==1.12.1",
-    "pytest>=9.0.1",
     "python-dotenv==1.1.0",
+    "httpx==0.28.1",
+    "websockets==15.0.1",
+    "tqdm==4.67.1",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0.1",
+]
+
 [tool.isort]
 profile = "black"
 
