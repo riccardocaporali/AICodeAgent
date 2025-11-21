@@ -16,6 +16,7 @@ TO_DO.txt
 project_snapshot.txt
 project_tree.txt
 code_to_fix/*
+run_e2e_stress.sh
 
 # Virtual environments
 .venv

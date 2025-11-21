@@ -1,29 +1,5 @@
-# AiCodeAgent – AI-Driven Code Refactoring Agent
-
-AiCodeAgent is an AI-driven code refactoring agent designed for autonomous debugging, analysis, and self-contained code repair.
-It uses Google Gemini with function-calling to read, analyze, propose, and safely apply code edits inside a sandboxed environment.
-
-Each session generates:
-- detailed logs and statistics  
-- diff and backup files  
-- structured run summaries (`run_summary.json`) ensuring full continuity between runs
-
----
-
-## Main Features
-
-| Category | Description |
-|-----------|-------------|
-| Code analysis | The agent can explore and inspect any file inside `code_to_fix/` using its built-in tools: `get_files_info`, `get_file_content`, and `run_python_file`. These allow it to list files, read source code, and execute scripts to observe runtime behavior. |
-| Change proposals (preview) | Generates non-destructive previews via `propose_changes`, where the LLM suggests code modifications without altering files. |
-| Controlled application (apply) | Applies only previously proposed edits, verified through `(file_path, content_len)` or digest checks for safety and consistency. |
-| Full traceability | Each run creates a structured directory `ai_outputs/run_xxx/` containing logs, summaries, backups, and diffs for full auditability. |
-| Sandbox safety | All operations are confined to the `code_to_fix/` folder, ensuring the LLM cannot access or modify files outside the sandbox. |
-
----
-
 ## System Architecture
-```text
+```text 
 AiCodeAgent/
 ├── src/aicodeagent/
 │   ├── main.py
@@ -52,73 +28,6 @@ AiCodeAgent/
 ├── ai_outputs/                           # Structured outputs (logs, backups, summaries, diffs)
 
 ```
-## Setup
-
-1. **Clone the repository**
-
-    ```bash
-    git clone https://github.com/riccardocaporali/AiCodeAgent.git
-    cd AiCodeAgent
-    ```
-
-2. **Create a `.env` file with your Gemini API key**
-
-    ```bash
-    GEMINI_API_KEY=your_api_key_here
-    ```   
-    You can generate an API key directly here:
-    https://aistudio.google.com/app/apikey
-
-3. **Install dependencies using uv**
-
-    ```bash
-    uv sync
-    ```
-    
-3. **Run the test suite (recommended)**
-
-    Before using the agent on your own code, verify the system with the full e2e test suite:
-    ```bash
-    uv run pytest -s
-    ```
-
-4. **Run a quick test**
-
-    ```bash
-    uv run aicodeagent "Hello"
-    ```
-
----  
-
-## Quick Demo
-
-A ready-to-run demo is included to showcase the agent’s workflow.  
-Run the demo script from the project root:
-
-```bash
-bash demo_quickstart.sh
-```
-
-This script automatically:
-- Cleans the output directories for a fresh session.  
-- Launches a short deterministic run of the agent on the example project under `examples/minirepo/code_to_fix/calculator_bugged/`.  
-- Prints the path of the new session folder inside `__ai_outputs__/run_<id>/`.  
-
-After execution, you can inspect:
-- `diffs/` — preview of code modifications proposed by the agent  
-- `actions.log` — chronological list of all executed internal functions  
-- `llm_message` — raw model reasoning trace (for debugging and transparency)  
-- `run_summary.json` — structured record of all proposals and results  
-- `summary.txt` — human-readable summary of the session  
-
-To apply the proposed fix:
-```bash
-uv run aicodeagent "Apply the proposed fix"
-```
-
-This command reuses the latest `run_summary.json` under  
-`__ai_outputs__/run_<id>/` to apply the generated patch and log final results.
-
 
 ## How It Works
 
@@ -159,9 +68,3 @@ __ai_outputs__/run_<id>/run_summary.json
 | Propose_run     | Save proposal changes to the code for next run           |
 | Error           | Flow error in the model logic.                           |
 | Discard_run     | Transient errors only, nothing to save.                  |
-
-
-## License
-
-Open-source project released under the MIT License.  
-Created by Riccardo Caporali – Aerospace Engineer & AI Developer.
