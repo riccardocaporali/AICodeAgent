@@ -22,36 +22,6 @@ Each session generates:
 
 ---
 
-## System Architecture
-```text
-AiCodeAgent/
-├── src/aicodeagent/
-│   ├── main.py
-│   ├── cli.py
-│   ├── pipeline.py
-│   ├── llm_client.py
-│   │
-│   ├── prompts/
-│   │   └── system_prompt.py
-│   │
-│   ├── tools/
-│   │
-│   ├── functions/
-│   │   ├── call_function.py
-│   │   ├── functions_schemas.py
-│   │   │
-│   │   ├── fs/           # File-system operations
-│   │   ├── core/         # Snapshots, diffs, save utilities
-│   │   ├── pipeline/     # Init, summary, gating
-│   │   └── llm_calls/    # Tools exposed to the LLM
-│
-├── code_to_fix/          # Sandbox
-├── examples/             # Demo repository
-├── tests/                # Unit, integration, e2e
-│
-├── ai_outputs/                           # Structured outputs (logs, backups, summaries, diffs)
-
-```
 ## Setup
 
 1. **Clone the repository**
@@ -92,74 +62,13 @@ AiCodeAgent/
 
 ## Quick Demo
 
-A ready-to-run demo is included to showcase the agent’s workflow.  
-Run the demo script from the project root:
+A ready-to-run demo is included to showcase the agent’s workflow.
 
 ```bash
 bash demo_quickstart.sh
 ```
 
-This script automatically:
-- Cleans the output directories for a fresh session.  
-- Launches a short deterministic run of the agent on the example project under `examples/minirepo/code_to_fix/calculator_bugged/`.  
-- Prints the path of the new session folder inside `__ai_outputs__/run_<id>/`.  
-
-After execution, you can inspect:
-- `diffs/` — preview of code modifications proposed by the agent  
-- `actions.log` — chronological list of all executed internal functions  
-- `llm_message` — raw model reasoning trace (for debugging and transparency)  
-- `run_summary.json` — structured record of all proposals and results  
-- `summary.txt` — human-readable summary of the session  
-
-To apply the proposed fix:
-```bash
-uv run aicodeagent "Apply the proposed fix"
-```
-
-This command reuses the latest `run_summary.json` under  
-`__ai_outputs__/run_<id>/` to apply the generated patch and log final results.
-
-
-## How It Works
-
-Each execution (`run_id`) represents one autonomous LLM session that analyzes code, detects issues, and proposes safe corrections inside the sandbox.
-
-**Typical flow**
-```bash
-uv run aicodeagent "Analyze and fix the code"
-
-During the run, the agent:
- • Inspects files under code_to_fix/
- • Identifies issues and proposes non-destructive changes
- • Saves diffs, logs, and summaries under __ai_outputs__/run_<id>/
-
-To apply the last approved proposal:
-uv run aicodeagent "Apply the proposed fix"
-
-All proposals and metadata are stored in:
-__ai_outputs__/run_<id>/run_summary.json
-(for reproducibility and audit)
-
-```
-
-## Safety Mechanisms
-
-| Mechanism | Purpose |
-|----------|---------|
-| Throttle | Prevents multiple `conclude_edit` or `propose_changes` calls in the same run. |
-| Gating   | Allows applying only edits that were explicitly proposed in a previous run. |
-| Recovery | If the model flow fails, the run is saved as `Error` or `Additional_run` and can safely resume. |
-
-## Run Save Types
-
-| Type            | Meaning                                                  |
-|-----------------|----------------------------------------------------------|
-| Default         | Valid run, fully saved.                                  |
-| Additional_run  | Continuation or text-only run.                           |
-| Propose_run     | Save proposal changes to the code for next run           |
-| Error           | Flow error in the model logic.                           |
-| Discard_run     | Transient errors only, nothing to save.                  |
-
+For full documentation (architecture, safety mechanisms, extended demo), see `docs/full.md`.
 
 ## License
 
