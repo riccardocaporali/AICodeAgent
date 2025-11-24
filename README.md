@@ -45,10 +45,14 @@ Each session generates:
     uv sync
     ```
     
-3. **Run the test suite (recommended)**
+3. **Run the test suite (optional)**
 
-    Before using the agent on your own code, verify the system with the full e2e test suite:
+    You can run the full e2e test suite to verify that the agent works correctly.  
+    Note: this step is optional and may take a few minutes to complete.  
+    Install development dependencies first:
+
     ```bash
+    uv sync --group dev
     uv run pytest -s
     ```
 
