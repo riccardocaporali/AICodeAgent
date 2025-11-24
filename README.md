@@ -86,7 +86,7 @@ bash demo_quickstart.sh
 
 The complete technical documentation (architecture, internals, gating, snapshot system, error handling, CLI, testing, development workflow) is available here:
 
-### 👉 **[docs/full.md](docs/full.md)**
+### [docs/full.md](docs/full.md)
 
 ---
 
