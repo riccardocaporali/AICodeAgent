@@ -10,7 +10,6 @@ def save_summary_entry(
     log_line=None,
     diff_lines=None,
 ):
-
     os.makedirs(base_dir, exist_ok=True)
     summary_path = os.path.join(base_dir, "summary.txt")
 
@@ -49,7 +48,6 @@ def save_summary_entry(
 
                 f.write("\n---\n")
         else:
-
             with open(summary_path, "a", encoding="utf-8") as f:
                 # Header
                 f.write(f"\n### FUNCTION: {function_name}\n\n")

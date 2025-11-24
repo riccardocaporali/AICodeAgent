@@ -17,7 +17,6 @@ from aicodeagent.prompts.system_prompt import model, system_prompt
 
 
 def run_pipeline(prompt, llm, options, project_root, output_root=None):
-
     # ---- RUN SESSION INIT --------------------------------------------------------
     # - Create run_id only after validating arguments (avoid empty/garbage runs)
     run_id = init_run_session(output_root=output_root)

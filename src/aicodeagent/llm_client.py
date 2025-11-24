@@ -63,7 +63,6 @@ class FileLLMClient(LLMClient):
         return hashlib.sha1(concat.encode("utf-8")).hexdigest()
 
     def complete(self, model: str, messages, config) -> object:
-
         h = self._hash_prompt(messages)
         path = (self.canned_dir / f"response_{h}.json").resolve()
         print(f"[FileLLMClient] loading {path}")

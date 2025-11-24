@@ -33,7 +33,6 @@ def call_function(function_call_part, function_dict, verbose=False):
         )
 
     except Exception as e:
-
         err_payload = {
             "ok": False,
             "error": {

@@ -12,7 +12,7 @@ def test_run_python_success(tmp_path):
     # create script that writes a file
     script = working / "create_file.py"
     script.write_text(
-        "with open('output.txt', 'w', encoding='utf-8') as f:\n" "    f.write('ok')\n"
+        "with open('output.txt', 'w', encoding='utf-8') as f:\n    f.write('ok')\n"
     )
 
     run_id = init_run_session()
@@ -83,7 +83,7 @@ def test_run_python_timeout(tmp_path):
 
     # script that sleeps too long
     sleep_script = working / "sleep_long.py"
-    sleep_script.write_text("import time\n" "time.sleep(40)\n")
+    sleep_script.write_text("import time\ntime.sleep(40)\n")
 
     run_id = init_run_session()
 

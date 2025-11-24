@@ -80,7 +80,6 @@ def main():
 
     # ---- PERSIST RUN SUMMARY ------------------------------------------------------
     match save_type:
-
         case "Default":
             # Save current run summary normally
             save_run_info(messages, run_id, extra_data)
