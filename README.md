@@ -77,9 +77,9 @@ If you want to test the agent on an example codebase, copy the sample project:
 
 A ready-to-run demo is included to showcase the agent’s workflow.
 
-```bash
-bash demo_quickstart.sh
-```
+    ```bash
+    bash demo_quickstart.sh
+    ```
 
 For full documentation (architecture, safety mechanisms, extended demo), see `docs/full.md`.
 
