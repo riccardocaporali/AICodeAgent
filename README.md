@@ -68,18 +68,19 @@ Each session generates:
 
 If you want to test the agent on an example codebase, copy the sample project:
 
-    ```bash
-    cp -r examples/minirepo/code_to_fix/calculator_bugged ./code_to_fix/
-    ```
+```bash
+cp -r examples/minirepo/code_to_fix/calculator_bugged ./code_to_fix/
+```
+
 ---  
 
 ## Quick Demo
 
 A ready-to-run demo is included to showcase the agent’s workflow.
 
-    ```bash
-    bash demo_quickstart.sh
-    ```
+```bash
+bash demo_quickstart.sh
+```
 
 For full documentation (architecture, safety mechanisms, extended demo), see `docs/full.md`.
 
